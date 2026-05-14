@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CVCraft — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#080b10;--bg2:#0e1219;--bg3:#141820;--bg4:#1a2030;
+      --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+      --text:#f0f2f5;--muted:#7a8294;
+      --accent:#4f8eff;--accent2:#a78bfa;--green:#34d399;--red:#f87171;--amber:#fbbf24;
+      --fd:'Syne',sans-serif;--fb:'DM Sans',sans-serif;
+    }
+    html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--fb);font-size:15px;line-height:1.6}
+
+    /* NAV */
+    .nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:60px;background:rgba(8,11,16,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border)}
+    .logo{font-family:var(--fd);font-weight:800;font-size:1.25rem;letter-spacing:-.03em;background:linear-gradient(135deg,#fff 40%,var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+    .nav-center{display:flex;gap:.35rem}
+    .nav-tab{background:none;border:none;color:var(--muted);font-family:var(--fb);font-size:.82rem;font-weight:500;padding:.38rem .85rem;border-radius:8px;cursor:pointer;transition:all .18s}
+    .nav-tab:hover{color:var(--text);background:var(--bg3)}
+    .nav-tab.active{color:var(--text);background:var(--bg3)}
+    .nav-right{display:flex;align-items:center;gap:.75rem}
+    .user-pill{display:flex;align-items:center;gap:.55rem;padding:.35rem .75rem;background:var(--bg3);border:1px solid var(--border);border-radius:100px;cursor:pointer;transition:all .18s}
+    .user-pill:hover{border-color:var(--border2)}
+    .user-av{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:700;color:#fff;flex-shrink:0}
+    .user-name{font-size:.78rem;font-weight:500}
+    .btn-new{background:var(--accent);color:#fff;border:none;font-family:var(--fb);font-size:.82rem;font-weight:600;padding:.42rem 1.1rem;border-radius:8px;cursor:pointer;transition:all .18s;display:flex;align-items:center;gap:.4rem}
+    .btn-new:hover{opacity:.88;transform:translateY(-1px)}
+
+    /* MAIN */
+    .main{max-width:1200px;margin:0 auto;padding:2.5rem 2.5rem}
+
+    /* WELCOME BANNER */
+    .welcome{display:flex;align-items:center;justify-content:space-between;margin-bottom:2.5rem;flex-wrap:wrap;gap:1rem}
+    .welcome-text h1{font-family:var(--fd);font-size:1.6rem;font-weight:800;letter-spacing:-.03em}
+    .welcome-text p{color:var(--muted);font-size:.88rem;margin-top:.25rem}
+
+    /* STATS ROW */
+    .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:2.5rem}
+    .stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.1rem 1.25rem;display:flex;align-items:center;gap:1rem}
+    .stat-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+    .si-blue{background:rgba(79,142,255,.1);border:1px solid rgba(79,142,255,.15)}
+    .si-purple{background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.15)}
+    .si-green{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.15)}
+    .si-amber{background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.15)}
+    .stat-info{}
+    .stat-val{font-family:var(--fd);font-size:1.4rem;font-weight:800;line-height:1}
+    .stat-lbl{font-size:.72rem;color:var(--muted);margin-top:.2rem}
+
+    /* SECTION HEADER */
+    .sec-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}
+    .sec-title{font-family:var(--fd);font-size:1rem;font-weight:700;letter-spacing:-.01em}
+    .sec-actions{display:flex;gap:.5rem;align-items:center}
+
+    /* FILTER TABS */
+    .filter-tabs{display:flex;gap:.35rem;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.25rem}
+    .ftab{background:none;border:none;color:var(--muted);font-family:var(--fb);font-size:.75rem;font-weight:500;padding:.3rem .75rem;border-radius:6px;cursor:pointer;transition:all .18s}
+    .ftab:hover{color:var(--text)}
+    .ftab.active{background:var(--bg3);color:var(--text)}
+
+    /* SORT */
+    .sort-select{background:var(--bg2);border:1px solid var(--border);color:var(--muted);font-family:var(--fb);font-size:.75rem;padding:.32rem .65rem;border-radius:7px;cursor:pointer;outline:none;-webkit-appearance:none}
+
+    /* RESUME GRID */
+    .resume-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.25rem;margin-bottom:3rem}
+
+    /* RESUME CARD */
+    .rcard{background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:all .22s;cursor:pointer;position:relative}
+    .rcard:hover{border-color:rgba(79,142,255,.3);transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,.3)}
+    .rcard:hover .rc-actions{opacity:1;transform:translateY(0)}
+
+    /* CARD PREVIEW */
+    .rc-preview{height:180px;background:linear-gradient(135deg,#1a1f2e,#111827);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+    .rc-preview::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 70% 30%,rgba(79,142,255,.12),transparent 60%)}
+    .rc-mini{width:100px;height:130px;background:#fff;border-radius:3px;box-shadow:0 8px 24px rgba(0,0,0,.4);display:flex;flex-direction:column;gap:3px;padding:8px;position:relative;z-index:1}
+    .rc-mini-bar{height:4px;border-radius:2px;background:#e5e5e5}
+    .rc-mini-bar.dark{background:#1a1f2e;height:20px;border-radius:2px;margin-bottom:4px}
+    .rc-mini-bar.accent{background:var(--accent)}
+    .rc-tpl-badge{position:absolute;bottom:.65rem;right:.65rem;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.7);font-size:.6rem;font-weight:600;padding:.18rem .5rem;border-radius:5px;letter-spacing:.04em;text-transform:uppercase}
+
+    /* CARD ACTIONS OVERLAY */
+    .rc-actions{position:absolute;inset:0;background:rgba(8,11,16,.88);display:flex;align-items:center;justify-content:center;gap:.6rem;opacity:0;transform:translateY(4px);transition:all .22s}
+    .rc-btn{display:flex;align-items:center;gap:.35rem;padding:.5rem .9rem;border-radius:8px;font-family:var(--fb);font-size:.75rem;font-weight:500;cursor:pointer;transition:all .18s;border:none}
+    .rc-btn-edit{background:var(--accent);color:#fff}
+    .rc-btn-edit:hover{opacity:.88}
+    .rc-btn-prev{background:var(--bg3);color:var(--text);border:1px solid var(--border2)}
+    .rc-btn-prev:hover{background:var(--bg4)}
+    .rc-btn-del{background:rgba(248,113,113,.1);color:var(--red);border:1px solid rgba(248,113,113,.15)}
+    .rc-btn-del:hover{background:rgba(248,113,113,.18)}
+
+    /* CARD INFO */
+    .rc-info{padding:1rem 1.1rem}
+    .rc-name{font-size:.92rem;font-weight:700;margin-bottom:.22rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .rc-meta{display:flex;align-items:center;justify-content:space-between;gap:.5rem}
+    .rc-date{font-size:.7rem;color:var(--muted)}
+    .rc-tags{display:flex;gap:.35rem}
+    .rc-tag{font-size:.6rem;font-weight:600;padding:.12rem .45rem;border-radius:4px}
+    .tag-resume{background:rgba(79,142,255,.1);color:var(--accent)}
+    .tag-cv{background:rgba(167,139,250,.1);color:var(--accent2)}
+    .tag-draft{background:rgba(251,191,36,.1);color:var(--amber)}
+    .tag-done{background:rgba(52,211,153,.1);color:var(--green)}
+
+    /* CARD FOOTER */
+    .rc-footer{padding:.65rem 1.1rem;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+    .rc-ats{display:flex;align-items:center;gap:.45rem}
+    .rc-ats-label{font-size:.68rem;color:var(--muted)}
+    .rc-ats-bar{width:60px;height:4px;background:var(--bg4);border-radius:2px;overflow:hidden}
+    .rc-ats-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--accent),var(--green))}
+    .rc-ats-val{font-size:.68rem;font-weight:700;color:var(--green)}
+    .rc-more{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;padding:.2rem .4rem;border-radius:5px;transition:all .15s}
+    .rc-more:hover{color:var(--text);background:var(--bg3)}
+
+    /* CREATE NEW CARD */
+    .rcard-new{background:var(--bg2);border:2px dashed rgba(79,142,255,.2);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:260px;cursor:pointer;transition:all .22s;text-decoration:none;color:var(--text)}
+    .rcard-new:hover{border-color:rgba(79,142,255,.45);background:rgba(79,142,255,.04);transform:translateY(-3px)}
+    .rcard-new-icon{width:52px;height:52px;border-radius:14px;background:rgba(79,142,255,.1);border:1px solid rgba(79,142,255,.2);display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin-bottom:1rem}
+    .rcard-new-title{font-family:var(--fd);font-size:.92rem;font-weight:700;margin-bottom:.3rem}
+    .rcard-new-desc{font-size:.75rem;color:var(--muted);text-align:center;max-width:160px}
+
+    /* EMPTY STATE */
+    .empty-state{text-align:center;padding:5rem 2rem;grid-column:1/-1}
+    .empty-icon{font-size:3rem;margin-bottom:1rem;opacity:.5}
+    .empty-title{font-family:var(--fd);font-size:1.2rem;font-weight:700;margin-bottom:.5rem}
+    .empty-desc{color:var(--muted);font-size:.85rem;margin-bottom:2rem}
+
+    /* RECENT ACTIVITY */
+    .activity-list{display:flex;flex-direction:column;gap:.5rem}
+    .act-item{display:flex;align-items:center;gap:.85rem;padding:.75rem 1rem;background:var(--bg2);border:1px solid var(--border);border-radius:10px}
+    .act-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
+    .act-info{flex:1}
+    .act-title{font-size:.82rem;font-weight:500}
+    .act-time{font-size:.7rem;color:var(--muted);margin-top:.05rem}
+    .act-badge{font-size:.65rem;font-weight:600;padding:.15rem .5rem;border-radius:5px}
+
+    /* TIPS SECTION */
+    .tips-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.85rem;margin-bottom:3rem}
+    .tip-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.1rem;display:flex;gap:.85rem;align-items:flex-start;cursor:pointer;transition:all .18s}
+    .tip-card:hover{border-color:var(--border2);transform:translateY(-2px)}
+    .tip-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0}
+    .tip-title{font-size:.82rem;font-weight:600;margin-bottom:.22rem}
+    .tip-desc{font-size:.72rem;color:var(--muted);line-height:1.5}
+
+    /* DROPDOWN MENU */
+    .dropdown{position:absolute;right:.5rem;top:2.8rem;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:.4rem;z-index:50;min-width:160px;box-shadow:0 8px 32px rgba(0,0,0,.4);display:none}
+    .dropdown.open{display:block;animation:ddIn .15s ease}
+    @keyframes ddIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+    .dd-item{display:flex;align-items:center;gap:.6rem;padding:.55rem .75rem;border-radius:7px;font-size:.78rem;color:var(--text);cursor:pointer;transition:background .15s}
+    .dd-item:hover{background:var(--bg3)}
+    .dd-item.danger{color:var(--red)}
+    .dd-item.danger:hover{background:rgba(248,113,113,.08)}
+    .dd-sep{height:1px;background:var(--border);margin:.3rem 0}
+
+    /* TOAST */
+    .toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(14px);background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:.6rem 1.1rem;font-size:.78rem;color:var(--text);z-index:999;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap}
+    .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+    /* MODAL — delete confirm */
+    .modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:400;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;backdrop-filter:blur(6px)}
+    .modal-ov.open{opacity:1;pointer-events:all}
+    .modal-box{background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:2rem;max-width:380px;width:90%;text-align:center;animation:mIn .25s ease}
+    @keyframes mIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+    .modal-icon{font-size:2.5rem;margin-bottom:1rem}
+    .modal-title{font-family:var(--fd);font-size:1.1rem;font-weight:700;margin-bottom:.5rem}
+    .modal-desc{font-size:.82rem;color:var(--muted);margin-bottom:1.75rem;line-height:1.6}
+    .modal-btns{display:flex;gap:.65rem}
+    .btn-cancel{flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:.65rem;font-family:var(--fb);font-size:.85rem;cursor:pointer;transition:all .18s}
+    .btn-cancel:hover{color:var(--text);border-color:var(--border2)}
+    .btn-delete{flex:1;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.2);color:var(--red);border-radius:8px;padding:.65rem;font-family:var(--fb);font-size:.85rem;font-weight:600;cursor:pointer;transition:all .18s}
+    .btn-delete:hover{background:rgba(248,113,113,.18)}
+
+    @media(max-width:768px){
+      .nav{padding:0 1.25rem}
+      .main{padding:1.5rem 1.25rem}
+      .nav-center{display:none}
+      .stats-row{grid-template-columns:1fr 1fr}
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <a href="index.html" class="logo">CVCraft</a>
+  <div class="nav-center">
+    <button class="nav-tab active">My Resumes</button>
+    <button class="nav-tab" onclick="window.location.href='templates.html'">Templates</button>
+    <button class="nav-tab">Settings</button>
+  </div>
+  <div class="nav-right">
+    <div class="user-pill" onclick="toggleUserMenu()">
+      <div class="user-av" id="userAv">AH</div>
+      <span class="user-name" id="userName">Ali Hassan</span>
+      <span style="color:var(--muted);font-size:.7rem">▾</span>
+    </div>
+    <button class="btn-new" onclick="window.location.href='builder.html'">+ New Resume</button>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- WELCOME -->
+  <div class="welcome">
+    <div class="welcome-text">
+      <h1>Welcome back, <span id="welcomeName">Ali</span> 👋</h1>
+      <p>You have <span id="resumeCount">0</span> resumes saved. Keep building!</p>
+    </div>
+    <button class="btn-new" style="font-size:.88rem;padding:.55rem 1.35rem" onclick="window.location.href='builder.html'">
+      + Create New Resume
+    </button>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-icon si-blue">📄</div>
+      <div class="stat-info">
+        <div class="stat-val" id="statTotal">0</div>
+        <div class="stat-lbl">Total Resumes</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon si-green">✅</div>
+      <div class="stat-info">
+        <div class="stat-val" id="statAts">--</div>
+        <div class="stat-lbl">Best ATS Score</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon si-purple">⬇</div>
+      <div class="stat-info">
+        <div class="stat-val" id="statDownloads">0</div>
+        <div class="stat-lbl">PDF Downloads</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon si-amber">⭐</div>
+      <div class="stat-info">
+        <div class="stat-val" id="statPlan">Free</div>
+        <div class="stat-lbl">Current Plan</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUICK TIPS -->
+  <div class="sec-header"><div class="sec-title">Quick Actions</div></div>
+  <div class="tips-grid">
+    <div class="tip-card" onclick="window.location.href='builder.html'">
+      <div class="tip-icon" style="background:rgba(79,142,255,.1);border:1px solid rgba(79,142,255,.15)">✏️</div>
+      <div><div class="tip-title">Build New Resume</div><div class="tip-desc">Start from scratch with AI assistance</div></div>
+    </div>
+    <div class="tip-card" onclick="window.location.href='templates.html'">
+      <div class="tip-icon" style="background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.15)">🎨</div>
+      <div><div class="tip-title">Browse Templates</div><div class="tip-desc">10 professional designs to choose from</div></div>
+    </div>
+    <div class="tip-card" onclick="window.location.href='preview.html'">
+      <div class="tip-icon" style="background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.15)">👁</div>
+      <div><div class="tip-title">Preview & Export</div><div class="tip-desc">Download your resume as PDF</div></div>
+    </div>
+    <div class="tip-card" onclick="showToast('AI features coming with backend!')">
+      <div class="tip-icon" style="background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.15)">✨</div>
+      <div><div class="tip-title">AI Enhance</div><div class="tip-desc">Rewrite with AI for better impact</div></div>
+    </div>
+  </div>
+
+  <!-- RESUMES SECTION -->
+  <div class="sec-header">
+    <div class="sec-title">My Resumes</div>
+    <div class="sec-actions">
+      <div class="filter-tabs">
+        <button class="ftab active" onclick="filterResumes('all',this)">All</button>
+        <button class="ftab" onclick="filterResumes('resume',this)">Resume</button>
+        <button class="ftab" onclick="filterResumes('cv',this)">CV</button>
+      </div>
+      <select class="sort-select" onchange="sortResumes(this.value)">
+        <option value="newest">Newest first</option>
+        <option value="oldest">Oldest first</option>
+        <option value="name">By name</option>
+        <option value="ats">By ATS score</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="resume-grid" id="resumeGrid"></div>
+
+</div>
+
+<!-- DELETE MODAL -->
+<div class="modal-ov" id="delModal">
+  <div class="modal-box">
+    <div class="modal-icon">🗑</div>
+    <div class="modal-title">Delete Resume?</div>
+    <div class="modal-desc">This action cannot be undone. Your resume will be permanently deleted.</div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeDelModal()">Cancel</button>
+      <button class="btn-delete" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════
+// STATE
+// ══════════════════════════════
+let resumes = [];
+let filteredResumes = [];
+let deleteTarget = null;
+let activeFilter = 'all';
+let activeSort = 'newest';
+
+// ══════════════════════════════
+// INIT
+// ══════════════════════════════
+function init() {
+  loadUser();
+  loadResumes();
+}
+
+function loadUser() {
+  try {
+    const u = JSON.parse(localStorage.getItem('cvcraft_user') || '{}');
+    const name = u.firstName || 'User';
+    const initials = name.charAt(0).toUpperCase() + (u.lastName ? u.lastName.charAt(0).toUpperCase() : '');
+    document.getElementById('userAv').textContent = initials || 'U';
+    document.getElementById('userName').textContent = name + (u.lastName ? ' ' + u.lastName : '');
+    document.getElementById('welcomeName').textContent = name;
+    document.getElementById('statPlan').textContent = u.plan === 'premium' ? '⭐ Pro' : 'Free';
+  } catch(e) {}
+}
+
+function loadResumes() {
+  // Load from localStorage (demo mode)
+  // When backend is ready, fetch from API instead
+  try {
+    const saved = localStorage.getItem('cvcraft_resumes');
+    if(saved) {
+      resumes = JSON.parse(saved);
+    } else {
+      // Check if there's a current resume being built
+      const current = localStorage.getItem('cvcraft_data');
+      if(current) {
+        const d = JSON.parse(current);
+        if(d?.p?.fullName) {
+          resumes = [{
+            id: 'r1',
+            name: d.p.fullName + ' — ' + (d.p.jobTitle || 'Resume'),
+            type: d.docType || 'resume',
+            template: d.curTpl || 'modern',
+            ats: calcATS(d),
+            status: 'draft',
+            updatedAt: new Date().toISOString(),
+            data: d
+          }];
+          localStorage.setItem('cvcraft_resumes', JSON.stringify(resumes));
+        }
+      }
+    }
+  } catch(e) { resumes = []; }
+
+  updateStats();
+  renderGrid();
+}
+
+function calcATS(d) {
+  const p = d?.p || {};
+  let score = 0;
+  if(p.fullName) score += 10;
+  if(p.jobTitle) score += 8;
+  if(p.email) score += 8;
+  if(p.phone) score += 5;
+  if(p.summary && p.summary.length > 50) score += 12;
+  if((d.exp||[]).some(e=>e.ttl)) score += 15;
+  if((d.edu||[]).some(e=>e.deg)) score += 10;
+  if((d.skills||[]).length >= 5) score += 15;
+  if((d.proj||[]).some(e=>e.n)) score += 10;
+  if(p.linkedin) score += 7;
+  return score;
+}
+
+function updateStats() {
+  document.getElementById('statTotal').textContent = resumes.length;
+  document.getElementById('resumeCount').textContent = resumes.length;
+  const scores = resumes.map(r=>r.ats||0).filter(s=>s>0);
+  document.getElementById('statAts').textContent = scores.length ? Math.max(...scores)+'%' : '--';
+  document.getElementById('statDownloads').textContent = parseInt(localStorage.getItem('cvcraft_downloads')||'0');
+}
+
+// ══════════════════════════════
+// RENDER GRID
+// ══════════════════════════════
+function renderGrid() {
+  const grid = document.getElementById('resumeGrid');
+
+  let list = [...resumes];
+
+  // Filter
+  if(activeFilter !== 'all') list = list.filter(r=>r.type===activeFilter);
+
+  // Sort
+  if(activeSort === 'newest') list.sort((a,b)=>new Date(b.updatedAt)-new Date(a.updatedAt));
+  else if(activeSort === 'oldest') list.sort((a,b)=>new Date(a.updatedAt)-new Date(b.updatedAt));
+  else if(activeSort === 'name') list.sort((a,b)=>a.name.localeCompare(b.name));
+  else if(activeSort === 'ats') list.sort((a,b)=>(b.ats||0)-(a.ats||0));
+
+  filteredResumes = list;
+
+  let html = '';
+
+  if(list.length === 0) {
+    html = `<div class="empty-state">
+      <div class="empty-icon">📄</div>
+      <div class="empty-title">No resumes yet</div>
+      <div class="empty-desc">Create your first resume and it will appear here.</div>
+      <button class="btn-new" style="margin:0 auto;display:flex" onclick="window.location.href='builder.html'">+ Create First Resume</button>
+    </div>`;
+  } else {
+    html = list.map(r => resumeCard(r)).join('');
+  }
+
+  // Add "Create New" card at end
+  html += `
+    <a class="rcard-new" href="builder.html">
+      <div class="rcard-new-icon">+</div>
+      <div class="rcard-new-title">New Resume</div>
+      <div class="rcard-new-desc">Start a new resume or CV from scratch</div>
+    </a>`;
+
+  grid.innerHTML = html;
+}
+
+function resumeCard(r) {
+  const date = new Date(r.updatedAt);
+  const dateStr = date.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+  const ats = r.ats || 0;
+  const atsColor = ats >= 80 ? 'var(--green)' : ats >= 50 ? 'var(--amber)' : 'var(--red)';
+
+  return `
+    <div class="rcard" id="rc-${r.id}">
+      <div class="rc-preview">
+        <div class="rc-mini">
+          <div class="rc-mini-bar dark"></div>
+          <div class="rc-mini-bar accent" style="width:70%"></div>
+          <div class="rc-mini-bar" style="width:100%"></div>
+          <div class="rc-mini-bar" style="width:85%"></div>
+          <div class="rc-mini-bar" style="width:60%"></div>
+          <div class="rc-mini-bar accent" style="width:50%;margin-top:3px"></div>
+          <div class="rc-mini-bar" style="width:90%"></div>
+          <div class="rc-mini-bar" style="width:75%"></div>
+        </div>
+        <div class="rc-tpl-badge">${r.template || 'modern'}</div>
+        <div class="rc-actions">
+          <button class="rc-btn rc-btn-edit" onclick="editResume('${r.id}')">✏️ Edit</button>
+          <button class="rc-btn rc-btn-prev" onclick="previewResume('${r.id}')">👁 Preview</button>
+          <button class="rc-btn rc-btn-del" onclick="askDelete('${r.id}')">🗑</button>
+        </div>
+      </div>
+      <div class="rc-info">
+        <div class="rc-name">${esc(r.name)}</div>
+        <div class="rc-meta">
+          <div class="rc-date">Updated ${dateStr}</div>
+          <div class="rc-tags">
+            <span class="rc-tag ${r.type==='cv'?'tag-cv':'tag-resume'}">${r.type?.toUpperCase()||'RESUME'}</span>
+            <span class="rc-tag ${r.status==='draft'?'tag-draft':'tag-done'}">${r.status==='draft'?'Draft':'Done'}</span>
+          </div>
+        </div>
+      </div>
+      <div class="rc-footer">
+        <div class="rc-ats">
+          <span class="rc-ats-label">ATS</span>
+          <div class="rc-ats-bar"><div class="rc-ats-fill" style="width:${ats}%;background:${atsColor}"></div></div>
+          <span class="rc-ats-val" style="color:${atsColor}">${ats}%</span>
+        </div>
+        <div style="display:flex;gap:.4rem;align-items:center">
+          <button class="rc-more" onclick="dupResume('${r.id}')" title="Duplicate">⧉</button>
+          <button class="rc-more" onclick="downloadResume('${r.id}')" title="Download PDF">⬇</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ══════════════════════════════
+// ACTIONS
+// ══════════════════════════════
+function editResume(id) {
+  const r = resumes.find(x=>x.id===id);
+  if(r && r.data) {
+    localStorage.setItem('cvcraft_data', JSON.stringify(r.data));
+    showToast('Loading resume...');
+    setTimeout(()=>window.location.href='builder.html', 600);
+  }
+}
+
+function previewResume(id) {
+  const r = resumes.find(x=>x.id===id);
+  if(r && r.data) {
+    localStorage.setItem('cvcraft_data', JSON.stringify(r.data));
+    window.location.href = 'preview.html';
+  }
+}
+
+function dupResume(id) {
+  const r = resumes.find(x=>x.id===id);
+  if(!r) return;
+  const newR = {
+    ...r,
+    id: 'r' + Date.now(),
+    name: r.name + ' (Copy)',
+    updatedAt: new Date().toISOString(),
+    status: 'draft'
+  };
+  resumes.unshift(newR);
+  saveResumes();
+  renderGrid();
+  updateStats();
+  showToast('✅ Resume duplicated!');
+}
+
+function downloadResume(id) {
+  const r = resumes.find(x=>x.id===id);
+  if(r && r.data) {
+    localStorage.setItem('cvcraft_data', JSON.stringify(r.data));
+    const dl = parseInt(localStorage.getItem('cvcraft_downloads')||'0') + 1;
+    localStorage.setItem('cvcraft_downloads', dl);
+    document.getElementById('statDownloads').textContent = dl;
+    showToast('Opening PDF export...');
+    setTimeout(()=>{ window.open('preview.html','_blank'); }, 500);
+  }
+}
+
+function askDelete(id) {
+  deleteTarget = id;
+  document.getElementById('delModal').classList.add('open');
+}
+
+function closeDelModal() {
+  document.getElementById('delModal').classList.remove('open');
+  deleteTarget = null;
+}
+
+function confirmDelete() {
+  if(!deleteTarget) return;
+  resumes = resumes.filter(r=>r.id!==deleteTarget);
+  saveResumes();
+  renderGrid();
+  updateStats();
+  closeDelModal();
+  showToast('🗑 Resume deleted');
+}
+
+function saveResumes() {
+  localStorage.setItem('cvcraft_resumes', JSON.stringify(resumes));
+}
+
+// ══════════════════════════════
+// FILTER & SORT
+// ══════════════════════════════
+function filterResumes(type, btn) {
+  activeFilter = type;
+  document.querySelectorAll('.ftab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderGrid();
+}
+
+function sortResumes(val) {
+  activeSort = val;
+  renderGrid();
+}
+
+// ══════════════════════════════
+// USER MENU
+// ══════════════════════════════
+function toggleUserMenu() {
+  // Simple logout for now
+  if(confirm('Sign out of CVCraft?')) {
+    localStorage.removeItem('cvcraft_token');
+    localStorage.removeItem('cvcraft_user');
+    window.location.href = 'login.html';
+  }
+}
+
+// ══════════════════════════════
+// HELPERS
+// ══════════════════════════════
+function esc(s) {
+  if(!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+let toastT;
+function showToast(m) {
+  const el = document.getElementById('toast');
+  el.textContent = m; el.classList.add('on');
+  clearTimeout(toastT); toastT = setTimeout(()=>el.classList.remove('on'), 2600);
+}
+
+// Close modal on outside click
+document.getElementById('delModal').addEventListener('click', function(e) {
+  if(e.target === this) closeDelModal();
+});
+
+// ══════════════════════════════
+// START
+// ══════════════════════════════
+window.addEventListener('load', init);
+</script>
+</body>
+</html>

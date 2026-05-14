@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CVCraft — Templates</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&family=Playfair+Display:wght@700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#080b10;--bg2:#0e1219;--bg3:#141820;--bg4:#1a2030;
+      --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+      --text:#f0f2f5;--muted:#7a8294;
+      --accent:#4f8eff;--accent2:#a78bfa;--green:#34d399;--red:#f87171;--amber:#fbbf24;
+      --fd:'Syne',sans-serif;--fb:'DM Sans',sans-serif;
+    }
+    html{scroll-behavior:smooth}
+    body{background:var(--bg);color:var(--text);font-family:var(--fb);font-size:15px;line-height:1.6;overflow-x:hidden}
+
+    /* ORBS */
+    .orb{position:fixed;border-radius:50%;filter:blur(120px);pointer-events:none;z-index:0}
+    .orb1{width:500px;height:500px;background:rgba(79,142,255,.07);top:-150px;right:-100px}
+    .orb2{width:400px;height:400px;background:rgba(167,139,250,.06);bottom:-100px;left:-100px}
+
+    /* NAV */
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 6%;height:64px;background:rgba(8,11,16,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border)}
+    .nav-logo{font-family:var(--fd);font-weight:800;font-size:1.3rem;letter-spacing:-.03em;background:linear-gradient(135deg,#fff 40%,var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+    .nav-links{display:flex;gap:2rem;list-style:none}
+    .nav-links a{color:var(--muted);text-decoration:none;font-size:.88rem;font-weight:500;transition:color .2s}
+    .nav-links a:hover{color:var(--text)}
+    .nav-cta{display:flex;gap:.65rem;align-items:center}
+    .btn-ghost{color:var(--muted);background:none;border:none;font-family:var(--fb);font-size:.88rem;font-weight:500;cursor:pointer;padding:.45rem .95rem;border-radius:8px;transition:all .2s;text-decoration:none;display:inline-block}
+    .btn-ghost:hover{color:var(--text);background:var(--bg3)}
+    .btn-primary{background:var(--accent);color:#fff;border:none;font-family:var(--fb);font-size:.88rem;font-weight:500;cursor:pointer;padding:.5rem 1.2rem;border-radius:8px;transition:all .2s;text-decoration:none;display:inline-block}
+    .btn-primary:hover{opacity:.88;transform:translateY(-1px)}
+
+    /* PAGE HEADER */
+    .page-header{padding:120px 6% 60px;text-align:center;position:relative;z-index:1}
+    .page-badge{display:inline-flex;align-items:center;gap:.45rem;background:rgba(79,142,255,.1);border:1px solid rgba(79,142,255,.22);color:var(--accent);font-size:.72rem;font-weight:600;padding:.3rem .85rem;border-radius:100px;margin-bottom:1.5rem;letter-spacing:.05em;text-transform:uppercase}
+    .page-badge span{width:6px;height:6px;background:var(--accent);border-radius:50%;display:inline-block;animation:pulse 2s infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+    .page-title{font-family:var(--fd);font-size:clamp(2.2rem,5vw,3.5rem);font-weight:800;letter-spacing:-.04em;line-height:1.1;margin-bottom:1rem}
+    .page-title .grad{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .page-sub{color:var(--muted);font-size:1rem;max-width:500px;margin:0 auto 2.5rem}
+
+    /* FILTERS */
+    .filters{display:flex;align-items:center;justify-content:center;gap:.5rem;flex-wrap:wrap;position:relative;z-index:1;margin-bottom:3rem}
+    .filter-btn{background:var(--bg2);border:1px solid var(--border);color:var(--muted);font-family:var(--fb);font-size:.8rem;font-weight:500;padding:.45rem 1.1rem;border-radius:100px;cursor:pointer;transition:all .2s}
+    .filter-btn:hover{border-color:var(--border2);color:var(--text)}
+    .filter-btn.active{background:rgba(79,142,255,.1);border-color:rgba(79,142,255,.3);color:var(--accent)}
+    .filter-sep{width:1px;height:20px;background:var(--border);margin:0 .25rem}
+
+    /* GRID */
+    .templates-section{padding:0 6% 100px;position:relative;z-index:1}
+    .templates-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.5rem}
+
+    /* TEMPLATE CARD */
+    .tpl-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;overflow:hidden;cursor:pointer;transition:all .25s;position:relative}
+    .tpl-card:hover{border-color:rgba(79,142,255,.35);transform:translateY(-5px);box-shadow:0 20px 60px rgba(0,0,0,.4)}
+    .tpl-card.pro-locked{opacity:.85}
+    .tpl-card:hover .tpl-actions{opacity:1;transform:translateY(0)}
+
+    /* PRO BADGE */
+    .pro-overlay{position:absolute;top:.75rem;right:.75rem;z-index:5}
+    .pro-badge{background:linear-gradient(135deg,var(--accent2),#7c3aed);color:#fff;font-size:.62rem;font-weight:700;padding:.22rem .6rem;border-radius:6px;letter-spacing:.05em;text-transform:uppercase}
+    .free-badge{background:rgba(52,211,153,.12);color:var(--green);border:1px solid rgba(52,211,153,.2);font-size:.62rem;font-weight:700;padding:.22rem .6rem;border-radius:6px;letter-spacing:.05em;text-transform:uppercase}
+
+    /* PREVIEW AREA */
+    .tpl-preview{height:280px;overflow:hidden;position:relative;background:#fff}
+    .tpl-preview-inner{transform-origin:top center;transform:scale(.55);width:182%;margin-left:-41%}
+
+    /* CV MINI STYLES inside preview */
+    .mini-doc{background:#fff;font-family:'DM Sans',sans-serif;font-size:14px;color:#1a1a1a;min-height:520px}
+
+    /* Modern mini */
+    .mini-modern .mh{background:#1a1f2e;padding:1.5rem 1.75rem 1.25rem;color:#fff}
+    .mini-modern .mn{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;letter-spacing:-.02em}
+    .mini-modern .mr{color:#4f8eff;font-size:.7rem;margin-top:.15rem}
+    .mini-modern .mc{display:flex;flex-wrap:wrap;gap:.2rem .75rem;margin-top:.6rem;padding-top:.6rem;border-top:1px solid rgba(255,255,255,.1)}
+    .mini-modern .mc span{font-size:.58rem;color:rgba(255,255,255,.5)}
+    .mini-modern .mb{padding:1rem 1.75rem}
+    /* Minimal mini */
+    .mini-minimal .mh{padding:1.5rem 1.75rem 1rem;border-bottom:1px solid #e5e5e5}
+    .mini-minimal .mn{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;color:#0a0a0a;letter-spacing:-.03em}
+    .mini-minimal .mr{font-size:.7rem;color:#888;margin-top:.1rem}
+    .mini-minimal .mc{display:flex;flex-wrap:wrap;gap:.18rem 1rem;margin-top:.45rem}
+    .mini-minimal .mc span{font-size:.58rem;color:#aaa}
+    .mini-minimal .mb{padding:1rem 1.75rem}
+    /* ATS mini */
+    .mini-ats .mh{padding:1.25rem 1.75rem .85rem}
+    .mini-ats .mn{font-family:'Syne',sans-serif;font-size:1.35rem;font-weight:800;color:#111}
+    .mini-ats .mr{font-size:.7rem;color:#333;margin-top:.1rem}
+    .mini-ats .mc{display:flex;flex-wrap:wrap;gap:.15rem .55rem;margin-top:.4rem;font-size:.58rem;color:#666}
+    .mini-ats .mb{padding:.4rem 1.75rem 1rem}
+    /* Developer mini */
+    .mini-developer .mh{background:#0d1117;padding:1.25rem 1.75rem;color:#e6edf3;border-bottom:1px solid #30363d}
+    .mini-developer .mn{font-family:'IBM Plex Mono',monospace;font-size:1.2rem;font-weight:500}
+    .mini-developer .mr{color:#58a6ff;font-size:.62rem;font-family:'IBM Plex Mono',monospace;margin-top:.15rem}
+    .mini-developer .mr::before{content:'> ';color:#3fb950}
+    .mini-developer .mc{display:flex;flex-wrap:wrap;gap:.15rem .9rem;margin-top:.5rem}
+    .mini-developer .mc span{font-size:.55rem;color:#8b949e;font-family:'IBM Plex Mono',monospace}
+    .mini-developer .mb{padding:1rem 1.75rem;background:#fff}
+    /* Creative mini */
+    .mini-creative{display:grid;grid-template-columns:140px 1fr;min-height:520px}
+    .mini-creative .msb{background:#1a1f2e;padding:1.25rem 1rem;color:#fff}
+    .mini-creative .mphpl{width:56px;height:56px;border-radius:50%;background:rgba(79,142,255,.2);border:2px solid #a78bfa;display:flex;align-items:center;justify-content:center;font-size:1.1rem;margin-bottom:.75rem}
+    .mini-creative .mn{font-family:'Syne',sans-serif;font-size:.95rem;font-weight:800;color:#fff;line-height:1.2}
+    .mini-creative .mr{color:#a78bfa;font-size:.62rem;margin-top:.18rem}
+    .mini-creative .mc{margin-top:.9rem;display:flex;flex-direction:column;gap:.3rem}
+    .mini-creative .mc span{font-size:.55rem;color:rgba(255,255,255,.5)}
+    .mini-creative .mmain{padding:1.25rem 1.25rem}
+    /* Corporate mini */
+    .mini-corporate .mh{background:#1e293b;padding:1.25rem 1.75rem;color:#fff;display:flex;align-items:center;gap:1rem}
+    .mini-corporate .mphpl{width:50px;height:50px;border-radius:4px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+    .mini-corporate .mht{flex:1}
+    .mini-corporate .mn{font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:800}
+    .mini-corporate .mr{font-size:.6rem;color:rgba(255,255,255,.6);margin-top:.12rem;letter-spacing:.06em;text-transform:uppercase}
+    .mini-corporate .mc{display:flex;flex-wrap:wrap;gap:.15rem .8rem;margin-top:.45rem}
+    .mini-corporate .mc span{font-size:.55rem;color:rgba(255,255,255,.5)}
+    .mini-corporate .mb{padding:1rem 1.75rem}
+    /* Academic mini */
+    .mini-academic .mh{padding:1.5rem 1.75rem 1rem;text-align:center;border-bottom:2px solid #111;display:flex;flex-direction:column;align-items:center}
+    .mini-academic .mphpl{width:56px;height:56px;border-radius:50%;background:#e5e5e5;display:flex;align-items:center;justify-content:center;font-size:1rem;margin-bottom:.6rem}
+    .mini-academic .mn{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:800;color:#111}
+    .mini-academic .mr{font-size:.7rem;color:#555;font-style:italic;margin-top:.12rem}
+    .mini-academic .mc{display:flex;flex-wrap:wrap;gap:.15rem .9rem;justify-content:center;margin-top:.45rem}
+    .mini-academic .mc span{font-size:.58rem;color:#888}
+    .mini-academic .mb{padding:1rem 1.75rem}
+    /* Executive mini */
+    .mini-executive .mh{padding:1.75rem 1.75rem 1.25rem;display:flex;align-items:center;gap:1.1rem;border-bottom:3px solid #111}
+    .mini-executive .mphpl{width:68px;height:68px;border-radius:4px;background:#e5e5e5;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0}
+    .mini-executive .mht{flex:1}
+    .mini-executive .mn{font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;color:#0a0a0a;letter-spacing:-.04em}
+    .mini-executive .mr{font-size:.6rem;color:#555;letter-spacing:.08em;text-transform:uppercase;margin-top:.18rem}
+    .mini-executive .mc{display:flex;flex-wrap:wrap;gap:.2rem 1.2rem;margin-top:.6rem}
+    .mini-executive .mc span{font-size:.58rem;color:#888}
+    .mini-executive .mb{padding:1rem 1.75rem}
+    /* Compact mini */
+    .mini-compact{display:grid;grid-template-columns:120px 1fr;min-height:520px}
+    .mini-compact .msb{background:#f8f9fa;border-right:1px solid #e5e5e5;padding:1.1rem .85rem}
+    .mini-compact .mphpl{width:52px;height:52px;border-radius:50%;background:#e5e5e5;display:flex;align-items:center;justify-content:center;font-size:.95rem;margin-bottom:.6rem}
+    .mini-compact .mn{font-family:'Syne',sans-serif;font-size:.85rem;font-weight:800;color:#111;line-height:1.2}
+    .mini-compact .mr{font-size:.6rem;color:#666;margin-top:.15rem}
+    .mini-compact .mc{margin-top:.75rem;display:flex;flex-direction:column;gap:.28rem}
+    .mini-compact .mc span{font-size:.55rem;color:#888}
+    .mini-compact .mmain{padding:1.1rem 1.1rem}
+    /* Timeline mini */
+    .mini-timeline .mh{padding:1.5rem 1.75rem 1.1rem;border-left:4px solid #4f8eff;display:flex;align-items:center;gap:1rem}
+    .mini-timeline .mphpl{width:52px;height:52px;border-radius:50%;background:#eff4ff;border:3px solid #4f8eff;display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0}
+    .mini-timeline .mht{flex:1}
+    .mini-timeline .mn{font-family:'Syne',sans-serif;font-size:1.35rem;font-weight:800;color:#111;letter-spacing:-.02em}
+    .mini-timeline .mr{font-size:.7rem;color:#4f8eff;margin-top:.1rem}
+    .mini-timeline .mc{display:flex;flex-wrap:wrap;gap:.15rem .8rem;margin-top:.45rem}
+    .mini-timeline .mc span{font-size:.58rem;color:#888}
+    .mini-timeline .mb{padding:1rem 1.75rem;border-left:4px solid #4f8eff}
+
+    /* SHARED MINI BODY */
+    .msec{margin-bottom:.85rem}
+    .mst{font-size:.52rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#4f8eff;border-bottom:1px solid #4f8eff;padding-bottom:.18rem;margin-bottom:.5rem}
+    .mini-ats .mst{color:#111;border-color:#111}
+    .mini-academic .mst{font-family:'Playfair Display',serif;font-size:.6rem;text-transform:none;letter-spacing:0;font-style:italic;color:#111;border-color:#111}
+    .mini-developer .mst{font-family:'IBM Plex Mono',monospace;color:#3fb950;border-color:#3fb950;font-size:.5rem}
+    .me{margin-bottom:.6rem}
+    .met{font-size:.68rem;font-weight:700;color:#111}
+    .mes{font-size:.58rem;color:#666;margin-top:.05rem}
+    .med{font-size:.6rem;color:#444;margin-top:.22rem;line-height:1.4}
+    .mchips{display:flex;flex-wrap:wrap;gap:.25rem}
+    .mchip{background:#eff4ff;color:#4f8eff;font-size:.55rem;font-weight:600;padding:.12rem .4rem;border-radius:3px}
+    .mini-ats .mchip{background:none;color:#333;font-size:.6rem;padding:0}
+    .mini-ats .mchip::after{content:' · ';color:#bbb}
+    .mini-ats .mchip:last-child::after{content:''}
+    .mini-developer .mchip{background:#f6f8fa;color:#24292f;border:1px solid #d0d7de;border-radius:10px;font-family:'IBM Plex Mono',monospace}
+    .mini-creative .mst{color:#a78bfa;border-color:#a78bfa}
+    .mini-creative .mchip{background:#eff4ff;color:#4f8eff}
+
+    /* HOVER ACTIONS */
+    .tpl-actions{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top,rgba(8,11,16,.95) 0%,rgba(8,11,16,.7) 70%,transparent 100%);padding:1.5rem 1.25rem 1.25rem;display:flex;gap:.65rem;opacity:0;transform:translateY(8px);transition:all .25s}
+    .btn-use{flex:1;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:.65rem;font-family:var(--fb);font-size:.82rem;font-weight:600;cursor:pointer;transition:all .18s}
+    .btn-use:hover{opacity:.88}
+    .btn-preview-tpl{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:var(--text);border-radius:8px;padding:.65rem;font-family:var(--fb);font-size:.82rem;font-weight:500;cursor:pointer;transition:all .18s;white-space:nowrap}
+    .btn-preview-tpl:hover{background:rgba(255,255,255,.14)}
+
+    /* CARD FOOTER */
+    .tpl-card-footer{padding:.9rem 1.1rem;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+    .tpl-card-name{font-family:var(--fd);font-size:.9rem;font-weight:700}
+    .tpl-card-meta{font-size:.72rem;color:var(--muted)}
+    .tpl-card-tags{display:flex;gap:.35rem;margin-top:.28rem}
+    .tpl-tag{background:var(--bg3);border:1px solid var(--border);border-radius:4px;font-size:.6rem;color:var(--muted);padding:.1rem .42rem}
+
+    /* MODAL */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;backdrop-filter:blur(8px)}
+    .modal-overlay.open{opacity:1;pointer-events:all}
+    .modal-box{background:var(--bg2);border:1px solid var(--border2);border-radius:20px;width:90%;max-width:960px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;animation:mslide .3s ease}
+    @keyframes mslide{from{opacity:0;transform:scale(.96) translateY(16px)}to{opacity:1;transform:scale(1) translateY(0)}}
+    .modal-header{display:flex;align-items:center;justify-content:space-between;padding:1.25rem 1.75rem;border-bottom:1px solid var(--border);flex-shrink:0}
+    .modal-title{font-family:var(--fd);font-size:1.1rem;font-weight:700}
+    .modal-close{background:var(--bg3);border:1px solid var(--border);color:var(--muted);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;transition:all .18s}
+    .modal-close:hover{color:var(--text);border-color:var(--border2)}
+    .modal-body{flex:1;overflow:auto;padding:1.75rem;display:grid;grid-template-columns:1fr 360px;gap:2rem;align-items:start}
+    .modal-preview-wrap{background:#d8d8d0;border-radius:12px;padding:1.5rem;overflow:hidden;display:flex;justify-content:center}
+    .modal-preview-doc{background:#fff;width:100%;max-width:440px;box-shadow:0 8px 32px rgba(0,0,0,.3);border-radius:3px;overflow:hidden;font-family:'DM Sans',sans-serif;color:#1a1a1a;font-size:11px}
+    .modal-info{}
+    .modal-tpl-name{font-family:var(--fd);font-size:1.6rem;font-weight:800;letter-spacing:-.03em;margin-bottom:.35rem}
+    .modal-tpl-desc{font-size:.85rem;color:var(--muted);line-height:1.65;margin-bottom:1.5rem}
+    .modal-features{list-style:none;display:flex;flex-direction:column;gap:.5rem;margin-bottom:2rem}
+    .modal-features li{display:flex;align-items:center;gap:.6rem;font-size:.85rem;color:var(--muted)}
+    .modal-features .ck{color:var(--green);font-weight:700}
+    .modal-plan{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between}
+    .modal-plan-label{font-size:.75rem;color:var(--muted)}
+    .modal-plan-val{font-size:.82rem;font-weight:600}
+    .btn-use-full{width:100%;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:.82rem;font-family:var(--fb);font-size:.95rem;font-weight:600;cursor:pointer;transition:all .2s;box-shadow:0 4px 20px rgba(79,142,255,.25)}
+    .btn-use-full:hover{opacity:.9;transform:translateY(-1px)}
+    .modal-nav{display:flex;gap:.5rem;margin-top:1rem;justify-content:center}
+    .mnav-btn{background:var(--bg3);border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:.45rem .85rem;font-family:var(--fb);font-size:.78rem;cursor:pointer;transition:all .18s}
+    .mnav-btn:hover{color:var(--text);border-color:var(--border2)}
+
+    /* CTA SECTION */
+    .cta-section{padding:80px 6%;text-align:center;position:relative;z-index:1}
+    .cta-box{background:linear-gradient(135deg,rgba(79,142,255,.08) 0%,rgba(167,139,250,.06) 100%);border:1px solid rgba(79,142,255,.18);border-radius:24px;padding:4rem 2rem;max-width:650px;margin:0 auto}
+    .cta-box h2{font-family:var(--fd);font-size:clamp(1.7rem,4vw,2.4rem);font-weight:800;letter-spacing:-.03em;margin-bottom:.85rem}
+    .cta-box p{color:var(--muted);margin-bottom:2rem;font-size:.95rem}
+    .cta-btns{display:flex;gap:.85rem;justify-content:center;flex-wrap:wrap}
+
+    /* FOOTER */
+    footer{border-top:1px solid var(--border);padding:2rem 6%;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;position:relative;z-index:1}
+    .footer-copy{color:var(--muted);font-size:.82rem}
+    .footer-links{display:flex;gap:1.5rem}
+    .footer-links a{color:var(--muted);text-decoration:none;font-size:.82rem;transition:color .2s}
+    .footer-links a:hover{color:var(--text)}
+
+    @media(max-width:768px){
+      .nav-links{display:none}
+      .modal-body{grid-template-columns:1fr}
+      .modal-preview-wrap{display:none}
+      .templates-grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+    }
+    @media(max-width:480px){
+      .filters{gap:.35rem}
+      .filter-btn{font-size:.72rem;padding:.38rem .85rem}
+    }
+  </style>
+</head>
+<body>
+
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-logo">CVCraft</a>
+  <ul class="nav-links">
+    <li><a href="index.html#features">Features</a></li>
+    <li><a href="templates.html" style="color:var(--text)">Templates</a></li>
+    <li><a href="index.html#pricing">Pricing</a></li>
+  </ul>
+  <div class="nav-cta">
+    <a href="login.html" class="btn-ghost">Sign in</a>
+    <a href="builder.html" class="btn-primary">Start Free</a>
+  </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div class="page-badge"><span></span>10 Professional Templates</div>
+  <h1 class="page-title">Find your perfect<br><span class="grad">CV style</span></h1>
+  <p class="page-sub">Every template is ATS-tested, professionally designed, and fully customizable with AI-powered content.</p>
+
+  <!-- FILTERS -->
+  <div class="filters">
+    <button class="filter-btn active" onclick="filter('all',this)">All (10)</button>
+    <button class="filter-btn" onclick="filter('free',this)">Free (5)</button>
+    <button class="filter-btn" onclick="filter('pro',this)">Pro (5)</button>
+    <div class="filter-sep"></div>
+    <button class="filter-btn" onclick="filter('resume',this)">Resume</button>
+    <button class="filter-btn" onclick="filter('cv',this)">CV / Academic</button>
+    <button class="filter-btn" onclick="filter('developer',this)">Developer</button>
+    <button class="filter-btn" onclick="filter('creative',this)">Creative</button>
+  </div>
+</div>
+
+<!-- GRID -->
+<div class="templates-section">
+  <div class="templates-grid" id="templatesGrid"></div>
+</div>
+
+<!-- CTA -->
+<div class="cta-section">
+  <div class="cta-box">
+    <h2>Ready to build your<br><span style="background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent">dream resume?</span></h2>
+    <p>Pick any template and start building in minutes. Free to use, no credit card needed.</p>
+    <div class="cta-btns">
+      <a href="builder.html" class="btn-primary" style="padding:.82rem 2rem;font-size:.95rem;border-radius:10px;box-shadow:0 4px 20px rgba(79,142,255,.25)">Start Building — Free</a>
+      <a href="signup.html" class="btn-ghost" style="padding:.82rem 2rem;font-size:.95rem;border-radius:10px;border:1px solid var(--border2)">Create Account</a>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <a href="index.html" style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;background:linear-gradient(135deg,#fff 40%,var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none">CVCraft</a>
+  <div class="footer-copy">© 2025 CVCraft. All rights reserved.</div>
+  <div class="footer-links">
+    <a href="#">Privacy</a><a href="#">Terms</a><a href="#">Contact</a>
+  </div>
+</footer>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div class="modal-box" id="modalBox">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">Template Name</div>
+      <button class="modal-close" onclick="closeModalDirect()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-preview-wrap">
+        <div class="modal-preview-doc" id="modalPreview"></div>
+      </div>
+      <div class="modal-info">
+        <div class="modal-tpl-name" id="modalName"></div>
+        <div class="modal-tpl-desc" id="modalDesc"></div>
+        <ul class="modal-features" id="modalFeatures"></ul>
+        <div class="modal-plan">
+          <span class="modal-plan-label">Plan required</span>
+          <span class="modal-plan-val" id="modalPlan"></span>
+        </div>
+        <button class="btn-use-full" id="modalBtn" onclick="useTpl()">Use This Template →</button>
+        <div class="modal-nav">
+          <button class="mnav-btn" onclick="modalPrev()">← Previous</button>
+          <button class="mnav-btn" onclick="modalNext()">Next →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════
+// TEMPLATE DATA
+// ══════════════════════════════
+const TPLS = [
+  {
+    id:'modern', name:'Modern', free:true,
+    tags:['resume','clean'],
+    desc:'A bold dark-header design with colored accents. Perfect for tech, design, and marketing professionals who want to stand out.',
+    features:['Dark header with accent color','ATS-compatible layout','Photo support','Skills chips','Best for: Tech, Design, Marketing'],
+    accentColor:'#4f8eff',
+  },
+  {
+    id:'minimal', name:'Minimal', free:true,
+    tags:['resume','clean'],
+    desc:'Clean white layout with subtle typography. Let your content speak. Ideal for corporate and finance roles where simplicity wins.',
+    features:['Clean white layout','Elegant typography','Photo support','Works for all industries','Best for: Finance, Corporate, Law'],
+    accentColor:'#111',
+  },
+  {
+    id:'ats', name:'ATS Friendly', free:true,
+    tags:['resume','ats'],
+    desc:'Maximum ATS compatibility. Plain text formatting that every applicant tracking system can parse perfectly. Highest pass rate.',
+    features:['94%+ ATS pass rate','No images (ATS safe)','Clean plain layout','Keyword optimized','Best for: Large companies, LinkedIn'],
+    accentColor:'#111',
+  },
+  {
+    id:'developer', name:'Developer', free:true,
+    tags:['resume','developer'],
+    desc:'GitHub-inspired dark header with monospace fonts. Built for software engineers, devs, and technical professionals.',
+    features:['GitHub-style dark header','Monospace fonts','Skills as code badges','Photo support','Best for: Software Engineers, DevOps'],
+    accentColor:'#58a6ff',
+  },
+  {
+    id:'compact', name:'Compact', free:true,
+    tags:['resume','clean'],
+    desc:'Two-column layout with a light sidebar. Fits more content per page — great for experienced professionals with long histories.',
+    features:['Two-column layout','Sidebar for skills/contact','Fits more content','Clean and professional','Best for: Experienced professionals'],
+    accentColor:'#4f8eff',
+  },
+  {
+    id:'creative', name:'Creative', free:false,
+    tags:['resume','creative'],
+    desc:'Bold two-column layout with dark sidebar and photo. Makes a memorable first impression for creative and design roles.',
+    features:['Dark sidebar layout','Profile photo prominent','Color accent customization','Sections reorderable','Best for: Designers, Creatives, UX'],
+    accentColor:'#a78bfa',
+  },
+  {
+    id:'corporate', name:'Corporate', free:false,
+    tags:['resume','clean'],
+    desc:'Professional dark header with company-ready styling. Projects authority and confidence for senior and executive roles.',
+    features:['Dark corporate header','Photo support','Uppercase role title','Clean body layout','Best for: Senior roles, Management'],
+    accentColor:'#4f8eff',
+  },
+  {
+    id:'academic', name:'Academic', free:false,
+    tags:['cv','academic'],
+    desc:'Classic centered header with serif fonts. Designed for academics, researchers, and medical professionals needing a full CV.',
+    features:['Centered header layout','Serif Playfair fonts','Publications section','Multi-page support','Best for: Academia, Research, Medical'],
+    accentColor:'#111',
+  },
+  {
+    id:'executive', name:'Executive', free:false,
+    tags:['resume','clean'],
+    desc:'Large bold name header with a powerful first impression. Premium look for C-suite, director, and executive-level applications.',
+    features:['Large executive header','Bold name display','Clean section dividers','Photo support','Best for: C-Suite, Directors, VPs'],
+    accentColor:'#111',
+  },
+  {
+    id:'timeline', name:'Timeline', free:false,
+    tags:['resume','creative'],
+    desc:'Distinctive left accent border on every section creates a timeline-like visual flow. Unique and memorable design.',
+    features:['Left accent border design','Unique visual flow','Color customization','Photo support','Best for: Project managers, Creatives'],
+    accentColor:'#4f8eff',
+  },
+];
+
+// Mini preview HTML per template
+function getMiniHtml(id) {
+  const previews = {
+    modern: `<div class="mini-doc mini-modern">
+      <div class="mh"><div class="mn">Ali Hassan</div><div class="mr">Full-Stack Developer</div>
+        <div class="mc"><span>ali@email.com</span><span>+92 300 1234567</span><span>Lahore, PK</span></div></div>
+      <div class="mb">
+        <div class="msec"><div class="mst">Experience</div>
+          <div class="me"><div class="met">Frontend Developer · Tech Solutions</div><div class="med">Developed 10+ React applications serving 50k+ monthly users. Reduced load time by 40%.</div></div>
+          <div class="me"><div class="met">Junior Developer · DigitalCraft</div><div class="med">Built UI components from Figma. Integrated REST APIs for 5 client projects.</div></div>
+        </div>
+        <div class="msec"><div class="mst">Skills</div>
+          <div class="mchips"><span class="mchip">React</span><span class="mchip">Node.js</span><span class="mchip">TypeScript</span><span class="mchip">MongoDB</span><span class="mchip">AWS</span></div>
+        </div>
+      </div></div>`,
+
+    minimal: `<div class="mini-doc mini-minimal">
+      <div class="mh"><div class="mn">Ali Hassan</div><div class="mr">Full-Stack Developer</div>
+        <div class="mc"><span>ali@email.com</span><span>+92 300 1234567</span><span>Lahore, PK</span></div></div>
+      <div class="mb">
+        <div class="msec"><div class="mst">Experience</div>
+          <div class="me"><div class="met">Frontend Developer · Tech Solutions</div><div class="med">Developed 10+ React applications. Reduced page load time by 40% through optimization.</div></div>
+          <div class="me"><div class="met">Junior Developer · DigitalCraft</div><div class="med">Built UI components. Delivered 5 client projects on time.</div></div>
+        </div>
+        <div class="msec"><div class="mst">Skills</div>
+          <div class="mchips"><span class="mchip">React</span><span class="mchip">Node.js</span><span class="mchip">TypeScript</span><span class="mchip">AWS</span></div>
+        </div>
+      </div></div>`,
+
+    ats: `<div class="mini-doc mini-ats">
+      <div class="mh"><div class="mn">Ali Hassan</div><div class="mr">Full-Stack Developer</div>
+        <div class="mc"><span>ali@email.com</span><span>+92 300 1234567</span><span>Lahore PK</span><span>linkedin.com/in/ali</span></div></div>
+      <div class="mb">
+        <div class="msec"><div class="mst">Experience</div>
+          <div class="me"><div class="met">Frontend Developer — Tech Solutions Ltd.</div><div class="med">Developed 10+ responsive React applications. Reduced load time by 40%. Agile team.</div></div>
+        </div>
+        <div class="msec"><div class="mst">Skills</div>
+          <div class="mchips"><span class="mchip">React</span><span class="mchip">Node.js</span><span class="mchip">TypeScript</span><span class="mchip">MongoDB</span><span class="mchip">AWS</span></div>
+        </div>
+      </div></div>`,
+
+    developer: `<div class="mini-doc mini-developer">
+      <div class="mh"><div class="mn">Ali Hassan</div><div class="mr">Full-Stack Developer</div>
+        <div class="mc"><span>ali@email.com</span><span>github.com/ali</span><span>Lahore, PK</span></div></div>
+      <div class="mb">
+        <div class="msec"><div class="mst">Experience</div>
+          <div class="me"><div class="met">Frontend Developer · Tech Solutions</div><div class="med">Built 10+ React apps, 50k+ users. Reduced load time 40% via code splitting.</div></div>
+        </div>
+        <div class="msec"><div class="mst">Skills</div>
+          <div class="mchips"><span class="mchip">React</span><span class="mchip">Node.js</span><span class="mchip">TypeScript</span><span class="mchip">Docker</span><span class="mchip">AWS</span></div>
+        </div>
+      </div></div>`,
+
+    creative: `<div class="mini-doc mini-creative">
+      <div class="msb">
+        <div class="mphpl">👤</div>
+        <div class="mn">Ali Hassan</div><div class="mr">Full-Stack Dev</div>
+        <div class="mc"><span>ali@email.com</span><span>+92 300 1234567</span></div>
+        <div style="margin-top:.7rem;font-size:.5rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#a78bfa">Skills</div>
+        <div style="margin-top:.3rem"><span style="display:inline-block;background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);font-size:.52rem;padding:.1rem .35rem;border-radius:3px;margin:.1rem .1rem 0 0">React</span><span style="display:inline-block;background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);font-size:.52rem;padding:.1rem .35rem;border-radius:3px;margin:.1rem .1rem 0 0">Node.js</span><span style="display:inline-block;background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);font-size:.52rem;padding:.1rem .35rem;border-radius:3px;margin:.1rem .1rem 0 0">Python</span></div>
+      </div>
+      <div class="mmain">
+        <div class="msec"><div class="mst" style="color:#a78bfa;border-color:#a78bfa">Experience</div>
+          <div class="me"><div class="met">Frontend Developer</div><div class="mes">Tech Solutions Ltd.</div><div class="med">Built 10+ React applications with 50k+ users.</div></div>
+        </div>
+        <div class="msec"><div class="mst" style="color:#a78bfa;border-color:#a78bfa">Education</div>
+          <div class="me"><div class="met">BS Computer Science</div><div class="mes">FAST University · 2019–2023</div></div>
+        </div>
+      </div></div>`,
+
+    corporate: `<div class="mini-doc mini-corporate">
+      <div class="mh"><div class="mphpl">👤</div>
+        <div class="mht"><div class="mn">Ali Hassan</div><div class="mr">Full-Stack Developer</div>
+          <div class="mc"><span>ali@email.com</span><span>+92 300 1234567</span><span>Lahore, PK</span></div></div></div>
+      <div class="mb">
+        <div class="msec"><div class="mst">Experience</div>
+          <div class="me"><div class="met">Frontend Developer · Tech Solutions</div><div class="med">Developed 10+ React applications serving 50k+ users monthly.</div></div>
+        </div>
+        <div class="msec"><div class="mst">Skills</div>
+          <div class="mchips"><span class="mchip">React</span><span class="mchip">Node.js</span><span class="mchip">TypeScript</span><span class="mchip">AWS</span></div>
+        </div>
+      </div></div>`,
+
+    academic: `<div class="mini-doc mini-academic">
+      <div class="mh"><div class="mphpl">👤</div>
+        <div class="mn">Dr. Ali Hassan</div><div class="mr">Associate Professor, Computer Science</div>
+        <div class="mc"><span>ali@university.edu</span><span>Lahore, Pakistan</span></div></div>
+      <div class="mb">
+        <div class="msec"><div class="mst">Education</div>
+          <div class="me"><div class="met">PhD Computer Science · MIT · 2018</div></div>
+          <div class="me"><div class="met">MS Computer Science · LUMS · 2014</div></div>
+        </div>
+        <div class="msec"><div class="mst">Publications</div>
+          <div style="font-size:.58rem;color:#333;padding:.15rem 0;border-bottom:1px solid #f0f0f0">Hassan, A. (2023). Deep Learning for NLP. IEEE Transactions.</div>
+          <div style="font-size:.58rem;color:#333;padding:.15rem 0">Hassan, A. (2022). Neural Networks in Healthcare. Nature AI.</div>
+        </div>
+      </div></div>`,
+
+    executive: `<div class="mini-doc mini-executive">
+      <div class="mh"><div class="mphpl">👤</div>
+        <div class="mht"><div class="mn">Ali Hassan</div><div class="mr">Chief Technology Officer</div>
+          <div class="mc"><span>ali@corp.com</span><span>+92 300 1234567</span><span>Lahore, PK</span></div></div></div>
+      <div class="mb">
+        <div class="msec"><div class="mst">Experience</div>
+          <div class="me"><div class="met">CTO · TechCorp International</div><div class="med">Led 50-person engineering team. Scaled platform to 10M+ users. $40M ARR growth.</div></div>
+        </div>
+        <div class="msec"><div class="mst">Skills</div>
+          <div class="mchips"><span class="mchip">Leadership</span><span class="mchip">Strategy</span><span class="mchip">Cloud</span><span class="mchip">AI/ML</span></div>
+        </div>
+      </div></div>`,
+
+    compact: `<div class="mini-doc mini-compact">
+      <div class="msb">
+        <div class="mphpl">👤</div>
+        <div class="mn">Ali Hassan</div><div class="mr">Full-Stack Dev</div>
+        <div class="mc"><span>ali@email.com</span><span>+92 300</span><span>Lahore PK</span></div>
+        <div style="margin-top:.6rem;font-size:.5rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#4f8eff">Skills</div>
+        <div style="margin-top:.3rem"><span style="display:inline-block;background:rgba(0,0,0,.06);color:#555;font-size:.52rem;padding:.1rem .35rem;border-radius:3px;margin:.1rem .1rem 0 0">React</span><span style="display:inline-block;background:rgba(0,0,0,.06);color:#555;font-size:.52rem;padding:.1rem .35rem;border-radius:3px;margin:.1rem .1rem 0 0">Node.js</span></div>
+      </div>
+      <div class="mmain">
+        <div class="msec"><div class="mst">Experience</div>
+          <div class="me"><div class="met">Frontend Developer</div><div class="mes">Tech Solutions · 2023–Present</div><div class="med">Built 10+ React apps, 50k+ users.</div></div>
+        </div>
+        <div class="msec"><div class="mst">Education</div>
+          <div class="me"><div class="met">BS Computer Science</div><div class="mes">FAST · 2019–2023</div></div>
+        </div>
+      </div></div>`,
+
+    timeline: `<div class="mini-doc mini-timeline">
+      <div class="mh"><div class="mphpl">👤</div>
+        <div class="mht"><div class="mn">Ali Hassan</div><div class="mr">Full-Stack Developer</div>
+          <div class="mc"><span>ali@email.com</span><span>+92 300 1234567</span></div></div></div>
+      <div class="mb">
+        <div class="msec"><div class="mst" style="color:#4f8eff;border-color:#4f8eff">Experience</div>
+          <div class="me"><div class="met">Frontend Developer · Tech Solutions</div><div class="med">Built 10+ React apps serving 50k+ users. Optimized performance by 40%.</div></div>
+        </div>
+        <div class="msec"><div class="mst" style="color:#4f8eff;border-color:#4f8eff">Skills</div>
+          <div class="mchips"><span class="mchip">React</span><span class="mchip">Node.js</span><span class="mchip">TypeScript</span><span class="mchip">AWS</span></div>
+        </div>
+      </div></div>`,
+  };
+  return previews[id] || '';
+}
+
+// ══════════════════════════════
+// RENDER GRID
+// ══════════════════════════════
+let activeFilter = 'all';
+let currentModalIdx = 0;
+
+const filterMap = {
+  all: ()=>true,
+  free: t=>t.free,
+  pro: t=>!t.free,
+  resume: t=>t.tags.includes('resume'),
+  cv: t=>t.tags.includes('cv')||t.tags.includes('academic'),
+  developer: t=>t.tags.includes('developer'),
+  creative: t=>t.tags.includes('creative'),
+};
+
+function filter(type, btn) {
+  activeFilter = type;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderGrid();
+}
+
+function renderGrid() {
+  const grid = document.getElementById('templatesGrid');
+  const filtered = TPLS.filter(filterMap[activeFilter]||filterMap.all);
+
+  if(!filtered.length) {
+    grid.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:4rem;color:var(--muted)">No templates match this filter</div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map((t,i) => `
+    <div class="tpl-card ${!t.free?'pro-locked':''}" data-id="${t.id}" onclick="openModal('${t.id}')">
+      <div class="pro-overlay">
+        <span class="${t.free?'free-badge':'pro-badge'}">${t.free?'Free':'Pro'}</span>
+      </div>
+      <div class="tpl-preview">
+        <div class="tpl-preview-inner">${getMiniHtml(t.id)}</div>
+      </div>
+      <div class="tpl-actions">
+        <button class="btn-use" onclick="event.stopPropagation();useTplDirect('${t.id}')">
+          Use Template
+        </button>
+        <button class="btn-preview-tpl" onclick="event.stopPropagation();openModal('${t.id}')">
+          Preview
+        </button>
+      </div>
+      <div class="tpl-card-footer">
+        <div>
+          <div class="tpl-card-name">${t.name}</div>
+          <div class="tpl-card-tags">
+            ${t.tags.map(tag=>`<span class="tpl-tag">${tag}</span>`).join('')}
+          </div>
+        </div>
+        <div class="tpl-card-meta">${t.free?'Free':'Premium'}</div>
+      </div>
+    </div>`).join('');
+}
+
+// ══════════════════════════════
+// MODAL
+// ══════════════════════════════
+function openModal(id) {
+  currentModalIdx = TPLS.findIndex(t=>t.id===id);
+  renderModal();
+  document.getElementById('modal').classList.add('open');
+}
+
+function renderModal() {
+  const t = TPLS[currentModalIdx];
+  if(!t) return;
+  document.getElementById('modalTitle').textContent = t.name + ' Template';
+  document.getElementById('modalName').textContent = t.name;
+  document.getElementById('modalDesc').textContent = t.desc;
+  document.getElementById('modalPlan').textContent = t.free ? '✅ Free Plan' : '⭐ Premium Plan ($7/mo)';
+  document.getElementById('modalPlan').style.color = t.free ? 'var(--green)' : 'var(--accent2)';
+  document.getElementById('modalBtn').textContent = t.free ? `Use ${t.name} Template →` : `Upgrade to Use ${t.name} →`;
+  document.getElementById('modalFeatures').innerHTML = t.features.map(f=>`<li><span class="ck">✓</span>${f}</li>`).join('');
+  document.getElementById('modalPreview').innerHTML = getMiniHtml(t.id);
+}
+
+function closeModal(e) {
+  if(e.target===document.getElementById('modal')) closeModalDirect();
+}
+function closeModalDirect() {
+  document.getElementById('modal').classList.remove('open');
+}
+function modalNext() {
+  currentModalIdx = (currentModalIdx+1) % TPLS.length;
+  renderModal();
+}
+function modalPrev() {
+  currentModalIdx = (currentModalIdx-1+TPLS.length) % TPLS.length;
+  renderModal();
+}
+
+function useTpl() {
+  const t = TPLS[currentModalIdx];
+  useTplDirect(t.id);
+}
+
+function useTplDirect(id) {
+  // Save chosen template to localStorage
+  try {
+    const existing = JSON.parse(localStorage.getItem('cvcraft_data')||'{}');
+    existing.curTpl = id;
+    localStorage.setItem('cvcraft_data', JSON.stringify(existing));
+  } catch(e){}
+  window.location.href = `builder.html`;
+}
+
+// Keyboard
+document.addEventListener('keydown', e => {
+  if(e.key==='Escape') closeModalDirect();
+  if(e.key==='ArrowRight') modalNext();
+  if(e.key==='ArrowLeft') modalPrev();
+});
+
+// Init
+renderGrid();
+</script>
+</body>
+</html>

@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CVCraft — AI Resume Wizard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#080b10;--bg2:#0e1219;--bg3:#141820;--bg4:#1a2030;
+      --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+      --text:#f0f2f5;--muted:#7a8294;
+      --accent:#4f8eff;--accent2:#a78bfa;--green:#34d399;--red:#f87171;
+      --fd:'Syne',sans-serif;--fb:'DM Sans',sans-serif;
+    }
+    html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--fb);font-size:15px;line-height:1.6;overflow:hidden}
+
+    /* NAV */
+    .nav{display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:56px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;position:relative;z-index:10}
+    .logo{font-family:var(--fd);font-weight:800;font-size:1.2rem;letter-spacing:-.03em;background:linear-gradient(135deg,#fff 40%,var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+    .nav-badge{background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.2);color:var(--accent2);font-size:.68rem;font-weight:700;padding:.18rem .65rem;border-radius:100px;letter-spacing:.05em;text-transform:uppercase;display:flex;align-items:center;gap:.4rem}
+    .ai-dot{width:6px;height:6px;background:var(--accent2);border-radius:50%;animation:pulse 1.5s infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+    .btn-skip{background:none;border:1px solid var(--border);color:var(--muted);font-family:var(--fb);font-size:.78rem;padding:.35rem .85rem;border-radius:7px;cursor:pointer;transition:all .18s}
+    .btn-skip:hover{color:var(--text);border-color:var(--border2)}
+
+    /* LAYOUT */
+    .layout{display:flex;height:calc(100vh - 56px)}
+
+    /* LEFT — CHAT */
+    .chat-panel{flex:1;display:flex;flex-direction:column;border-right:1px solid var(--border);max-width:520px}
+
+    /* PROGRESS */
+    .progress-header{padding:1rem 1.5rem .75rem;border-bottom:1px solid var(--border);flex-shrink:0}
+    .prog-steps{display:flex;gap:.35rem;margin-bottom:.65rem}
+    .prog-step{flex:1;height:3px;border-radius:2px;background:var(--border);transition:background .4s}
+    .prog-step.done{background:var(--green)}
+    .prog-step.active{background:var(--accent);animation:pulsebar 1.5s infinite}
+    @keyframes pulsebar{0%,100%{opacity:1}50%{opacity:.6}}
+    .prog-label{font-size:.72rem;color:var(--muted)}
+    .prog-label strong{color:var(--text);font-weight:600}
+
+    /* MESSAGES */
+    .messages{flex:1;overflow-y:auto;padding:1.25rem 1.5rem;display:flex;flex-direction:column;gap:.85rem;scrollbar-width:thin;scrollbar-color:var(--bg4) transparent}
+    .messages::-webkit-scrollbar{width:3px}
+    .messages::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:2px}
+
+    .msg{display:flex;gap:.75rem;align-items:flex-start;animation:msgIn .3s ease}
+    @keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+    .msg.user{flex-direction:row-reverse}
+
+    .msg-av{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700}
+    .av-ai{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff}
+    .av-user{background:var(--bg3);border:1px solid var(--border2);color:var(--muted)}
+
+    .msg-bubble{max-width:85%;padding:.7rem 1rem;border-radius:12px;font-size:.85rem;line-height:1.6}
+    .msg.ai .msg-bubble{background:var(--bg2);border:1px solid var(--border);border-top-left-radius:4px;color:var(--text)}
+    .msg.user .msg-bubble{background:var(--accent);color:#fff;border-top-right-radius:4px}
+
+    /* TYPING INDICATOR */
+    .typing{display:flex;align-items:center;gap:4px;padding:.6rem .85rem}
+    .typing span{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:bounce .8s infinite}
+    .typing span:nth-child(2){animation-delay:.15s}
+    .typing span:nth-child(3){animation-delay:.3s}
+    @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+
+    /* INPUT AREA */
+    .input-area{padding:1rem 1.5rem;border-top:1px solid var(--border);flex-shrink:0;background:var(--bg2)}
+    .input-row{display:flex;gap:.6rem;align-items:flex-end}
+    .chat-input{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:.65rem 1rem;color:var(--text);font-family:var(--fb);font-size:.85rem;outline:none;resize:none;min-height:42px;max-height:120px;transition:border-color .2s;line-height:1.5;scrollbar-width:none}
+    .chat-input:focus{border-color:rgba(79,142,255,.45)}
+    .chat-input::placeholder{color:var(--muted);opacity:.55}
+    .btn-send{width:40px;height:40px;background:var(--accent);border:none;border-radius:10px;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:all .18s;flex-shrink:0}
+    .btn-send:hover{opacity:.88;transform:scale(1.05)}
+    .btn-send:disabled{opacity:.4;cursor:not-allowed;transform:none}
+
+    /* QUICK REPLIES */
+    .quick-replies{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.65rem}
+    .qr{background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--fb);font-size:.76rem;padding:.32rem .75rem;border-radius:100px;cursor:pointer;transition:all .18s}
+    .qr:hover{border-color:var(--accent);color:var(--accent);background:rgba(79,142,255,.06)}
+
+    /* RIGHT — PREVIEW */
+    .preview-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;background:#1c1f26}
+    .preview-header{padding:.75rem 1.25rem;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+    .preview-title{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:.4rem}
+    .live-dot{width:6px;height:6px;background:var(--green);border-radius:50%;animation:pulse 2s infinite}
+    .preview-actions{display:flex;gap:.45rem}
+    .btn-pv{background:none;border:1px solid var(--border);color:var(--muted);font-family:var(--fb);font-size:.72rem;padding:.28rem .65rem;border-radius:6px;cursor:pointer;transition:all .18s}
+    .btn-pv:hover{color:var(--text);border-color:var(--border2)}
+    .btn-pv.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+    .btn-pv.primary:hover{opacity:.88}
+
+    .preview-scroll{flex:1;overflow-y:auto;display:flex;justify-content:center;align-items:flex-start;padding:1.5rem;background:#1c1f26;background-image:radial-gradient(circle,rgba(255,255,255,.02) 1px,transparent 1px);background-size:18px 18px}
+
+    /* CV DOC */
+    .cv-doc{background:#fff;width:100%;max-width:560px;min-height:720px;box-shadow:0 8px 40px rgba(0,0,0,.4);border-radius:3px;overflow:hidden;color:#1a1a1a;font-family:var(--fb);font-size:13px}
+    .cv-header{background:#1a1f2e;padding:1.75rem 2rem 1.4rem;color:#fff}
+    .cv-name{font-family:var(--fd);font-size:1.75rem;font-weight:800;letter-spacing:-.03em;line-height:1}
+    .cv-role{color:var(--accent);font-size:.8rem;font-weight:500;margin-top:.2rem}
+    .cv-contact{display:flex;flex-wrap:wrap;gap:.2rem .9rem;margin-top:.75rem;padding-top:.65rem;border-top:1px solid rgba(255,255,255,.1)}
+    .cv-contact span{font-size:.68rem;color:rgba(255,255,255,.5)}
+    .cv-body{padding:1.4rem 2rem}
+    .cv-sec{margin-bottom:1.1rem}
+    .cv-sec-title{font-size:.58rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);border-bottom:1.5px solid var(--accent);padding-bottom:.2rem;margin-bottom:.65rem}
+    .cv-entry{margin-bottom:.75rem}
+    .cv-et{font-size:.82rem;font-weight:700;color:#111}
+    .cv-es{font-size:.72rem;color:#666;margin-top:.05rem;display:flex;justify-content:space-between}
+    .cv-ed{font-size:.73rem;color:#444;margin-top:.3rem;line-height:1.55}
+    .cv-chips{display:flex;flex-wrap:wrap;gap:.3rem}
+    .cv-chip{background:#eff4ff;color:var(--accent);font-size:.65rem;font-weight:600;padding:.15rem .5rem;border-radius:3px}
+    .cv-sum{font-size:.76rem;color:#444;line-height:1.65}
+
+    /* EMPTY STATE */
+    .cv-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:600px;color:rgba(255,255,255,.2);text-align:center;padding:2rem}
+    .cv-empty-icon{font-size:3rem;margin-bottom:1rem;opacity:.4}
+    .cv-empty-text{font-size:.82rem}
+
+    /* GENERATING STATE */
+    .generating{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:600px;gap:1.5rem}
+    .gen-spinner{width:48px;height:48px;border:3px solid rgba(167,139,250,.2);border-top-color:var(--accent2);border-radius:50%;animation:spin 1s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .gen-text{font-size:.85rem;color:var(--muted);text-align:center}
+    .gen-steps{display:flex;flex-direction:column;gap:.4rem;margin-top:.5rem}
+    .gen-step{font-size:.75rem;color:var(--muted);display:flex;align-items:center;gap:.5rem;opacity:.4;transition:all .3s}
+    .gen-step.active{color:var(--accent2);opacity:1}
+    .gen-step.done{color:var(--green);opacity:1}
+
+    /* SUCCESS OVERLAY */
+    .success-banner{background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.2);border-radius:10px;padding:.85rem 1.1rem;margin:.75rem 1.5rem 0;display:none;align-items:center;justify-content:space-between;gap:.75rem}
+    .success-banner.show{display:flex;animation:msgIn .3s ease}
+    .sb-text{font-size:.82rem;color:var(--green);font-weight:500}
+    .sb-btns{display:flex;gap:.45rem}
+    .btn-sb{font-family:var(--fb);font-size:.75rem;font-weight:600;padding:.38rem .85rem;border-radius:7px;cursor:pointer;transition:all .18s;border:none}
+    .btn-edit{background:var(--green);color:#040a04}
+    .btn-edit:hover{opacity:.88}
+    .btn-dl{background:rgba(52,211,153,.12);color:var(--green);border:1px solid rgba(52,211,153,.2)!important;border:none}
+    .btn-dl:hover{background:rgba(52,211,153,.2)}
+
+    @media(max-width:768px){.preview-panel{display:none}.chat-panel{max-width:100%}}
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <a href="index.html" class="logo">CVCraft</a>
+  <div class="nav-badge"><div class="ai-dot"></div>AI Wizard</div>
+  <button class="btn-skip" onclick="skipToBuilder()">Skip — Build manually →</button>
+</nav>
+
+<!-- SUCCESS BANNER -->
+<div class="success-banner" id="successBanner">
+  <span class="sb-text">✅ Your CV has been generated successfully!</span>
+  <div class="sb-btns">
+    <button class="btn-sb btn-dl" onclick="window.location.href='preview.html'">👁 Preview</button>
+    <button class="btn-sb btn-edit" onclick="window.location.href='builder.html'">✏️ Edit in Builder</button>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- CHAT PANEL -->
+  <div class="chat-panel">
+    <div class="progress-header">
+      <div class="prog-steps">
+        <div class="prog-step active" id="ps1"></div>
+        <div class="prog-step" id="ps2"></div>
+        <div class="prog-step" id="ps3"></div>
+        <div class="prog-step" id="ps4"></div>
+      </div>
+      <div class="prog-label">Step <strong id="progNum">1</strong> of 4 — <strong id="progTitle">Basic Info</strong></div>
+    </div>
+
+    <div class="messages" id="messages"></div>
+
+    <div class="input-area">
+      <div class="input-row">
+        <textarea class="chat-input" id="chatInput" placeholder="Type your answer here..." rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <button class="btn-send" id="sendBtn" onclick="sendMsg()">➤</button>
+      </div>
+      <div class="quick-replies" id="quickReplies"></div>
+    </div>
+  </div>
+
+  <!-- PREVIEW PANEL -->
+  <div class="preview-panel">
+    <div class="preview-header">
+      <div class="preview-title"><div class="live-dot"></div>CV Preview</div>
+      <div class="preview-actions">
+        <button class="btn-pv" onclick="window.location.href='preview.html'">Full Preview</button>
+        <button class="btn-pv primary" onclick="window.location.href='builder.html'">Edit in Builder</button>
+      </div>
+    </div>
+    <div class="preview-scroll">
+      <div class="cv-doc" id="cvDoc">
+        <div class="cv-empty">
+          <div class="cv-empty-icon">✨</div>
+          <div class="cv-empty-text">Your AI-generated CV<br>will appear here</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ════════════════════════════════
+// STATE
+// ════════════════════════════════
+const STEPS = [
+  {
+    id: 1,
+    title: 'Basic Info',
+    question: "Hi! I'm your AI CV assistant. 👋\n\nLet's build your professional CV in just 4 steps.\n\nFirst, tell me your **full name**, **job title/designation**, **email**, and **phone number**.\n\nExample: *Ali Hassan, Frontend Developer, ali@email.com, +92 300 1234567*",
+    placeholder: "e.g. Ali Hassan, Frontend Developer, ali@gmail.com, 0300-1234567",
+    quickReplies: [],
+    field: 'basicInfo'
+  },
+  {
+    id: 2,
+    title: 'Education',
+    question: "Great! Now tell me about your **education background**.\n\nInclude your degree, institution, and years.\n\nExample: *BS Computer Science, FAST University, 2019-2023*\n\nYou can also add multiple degrees.",
+    placeholder: "e.g. BS Computer Science, FAST University, 2020-2024",
+    quickReplies: ['BS Computer Science', 'MBA Business', 'BE Software Engineering'],
+    field: 'education'
+  },
+  {
+    id: 3,
+    title: 'Experience & Skills',
+    question: "Excellent! Now tell me about your **work experience** and **key skills**.\n\nFor experience: Job title, company, duration, and what you did.\nFor skills: List your top technical and soft skills.\n\nExample: *Frontend Developer at TechCorp 2022-2024, built React apps. Skills: React, Node.js, Python, MongoDB*",
+    placeholder: "e.g. Web Developer at ABC Co 2022-present. Skills: HTML, CSS, JavaScript, React",
+    quickReplies: ['Fresh Graduate (No experience)', 'Freelancer'],
+    field: 'experience'
+  },
+  {
+    id: 4,
+    title: 'Career Goal',
+    question: "Almost done! 🎯\n\nWhat is your **career goal** or the type of job you're targeting?\n\nThis helps me write a powerful professional summary for your CV.\n\nExample: *Looking for a senior frontend developer role in a product-based company*",
+    placeholder: "e.g. Seeking a software engineer role at a tech startup",
+    quickReplies: ['Software Engineer role', 'Remote freelance work', 'Management position'],
+    field: 'goal'
+  }
+];
+
+let currentStep = 0;
+let userAnswers = {};
+let isTyping = false;
+let cvGenerated = false;
+
+// ════════════════════════════════
+// INIT
+// ════════════════════════════════
+window.addEventListener('load', () => {
+  setTimeout(() => showStep(0), 400);
+});
+
+// ════════════════════════════════
+// STEP LOGIC
+// ════════════════════════════════
+function showStep(idx) {
+  if(idx >= STEPS.length) {
+    generateCV();
+    return;
+  }
+  currentStep = idx;
+  const step = STEPS[idx];
+
+  // Update progress
+  updateProgress(idx);
+
+  // Show AI message
+  addAIMessage(step.question);
+
+  // Update input
+  document.getElementById('chatInput').placeholder = step.placeholder;
+
+  // Quick replies
+  showQuickReplies(step.quickReplies);
+
+  // Focus input
+  setTimeout(() => document.getElementById('chatInput').focus(), 100);
+}
+
+function updateProgress(idx) {
+  for(let i = 0; i < 4; i++) {
+    const el = document.getElementById(`ps${i+1}`);
+    if(i < idx) el.className = 'prog-step done';
+    else if(i === idx) el.className = 'prog-step active';
+    else el.className = 'prog-step';
+  }
+  document.getElementById('progNum').textContent = idx + 1;
+  document.getElementById('progTitle').textContent = STEPS[idx]?.title || 'Generating...';
+}
+
+// ════════════════════════════════
+// MESSAGES
+// ════════════════════════════════
+function addAIMessage(text) {
+  const msgs = document.getElementById('messages');
+
+  // Show typing first
+  const typingEl = document.createElement('div');
+  typingEl.className = 'msg ai';
+  typingEl.id = 'typing';
+  typingEl.innerHTML = `
+    <div class="msg-av av-ai">✨</div>
+    <div class="msg-bubble">
+      <div class="typing"><span></span><span></span><span></span></div>
+    </div>`;
+  msgs.appendChild(typingEl);
+  scrollMsgs();
+
+  isTyping = true;
+  document.getElementById('sendBtn').disabled = true;
+
+  setTimeout(() => {
+    typingEl.remove();
+    isTyping = false;
+    document.getElementById('sendBtn').disabled = false;
+
+    const msgEl = document.createElement('div');
+    msgEl.className = 'msg ai';
+    msgEl.innerHTML = `
+      <div class="msg-av av-ai">✨</div>
+      <div class="msg-bubble">${formatText(text)}</div>`;
+    msgs.appendChild(msgEl);
+    scrollMsgs();
+  }, 900);
+}
+
+function addUserMessage(text) {
+  const msgs = document.getElementById('messages');
+  const el = document.createElement('div');
+  el.className = 'msg user';
+  el.innerHTML = `
+    <div class="msg-av av-user">Me</div>
+    <div class="msg-bubble">${esc(text)}</div>`;
+  msgs.appendChild(el);
+  scrollMsgs();
+}
+
+function formatText(text) {
+  return esc(text)
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/\n/g, '<br>');
+}
+
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function scrollMsgs() {
+  const el = document.getElementById('messages');
+  setTimeout(() => el.scrollTop = el.scrollHeight, 100);
+}
+
+// ════════════════════════════════
+// QUICK REPLIES
+// ════════════════════════════════
+function showQuickReplies(replies) {
+  const el = document.getElementById('quickReplies');
+  el.innerHTML = replies.map(r =>
+    `<button class="qr" onclick="useQuickReply('${r}')">${r}</button>`
+  ).join('');
+}
+
+function useQuickReply(text) {
+  document.getElementById('chatInput').value = text;
+  sendMsg();
+}
+
+// ════════════════════════════════
+// SEND MESSAGE
+// ════════════════════════════════
+function handleKey(e) {
+  if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function sendMsg() {
+  if(isTyping) return;
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if(!text) return;
+
+  addUserMessage(text);
+  input.value = '';
+  input.style.height = 'auto';
+  document.getElementById('quickReplies').innerHTML = '';
+
+  // Save answer
+  userAnswers[STEPS[currentStep].field] = text;
+
+  // Next step
+  setTimeout(() => showStep(currentStep + 1), 400);
+}
+
+// ════════════════════════════════
+// GENERATE CV WITH AI
+// ════════════════════════════════
+async function generateCV() {
+  // Update progress to generating
+  for(let i = 0; i < 4; i++) document.getElementById(`ps${i+1}`).className = 'prog-step done';
+  document.getElementById('progNum').textContent = '✓';
+  document.getElementById('progTitle').textContent = 'Generating CV...';
+
+  // Show generating message
+  const msgs = document.getElementById('messages');
+  const genMsg = document.createElement('div');
+  genMsg.className = 'msg ai';
+  genMsg.innerHTML = `
+    <div class="msg-av av-ai">✨</div>
+    <div class="msg-bubble">Perfect! I have everything I need. Let me generate your professional CV now... 🚀</div>`;
+  msgs.appendChild(genMsg);
+  scrollMsgs();
+
+  // Show generating state in preview
+  document.getElementById('cvDoc').innerHTML = `
+    <div class="generating">
+      <div class="gen-spinner"></div>
+      <div class="gen-text">
+        <div style="font-size:.92rem;font-weight:600;color:var(--accent2);margin-bottom:.5rem">AI is building your CV</div>
+        <div class="gen-steps">
+          <div class="gen-step active" id="gs1">✦ Analyzing your information...</div>
+          <div class="gen-step" id="gs2">✦ Writing professional summary...</div>
+          <div class="gen-step" id="gs3">✦ Optimizing for ATS...</div>
+          <div class="gen-step" id="gs4">✦ Finalizing your CV...</div>
+        </div>
+      </div>
+    </div>`;
+
+  // Animate gen steps
+  const genSteps = ['gs1','gs2','gs3','gs4'];
+  let si = 0;
+  const stepInterval = setInterval(() => {
+    if(si > 0) document.getElementById(genSteps[si-1])?.classList.replace('active','done');
+    if(si < genSteps.length) document.getElementById(genSteps[si])?.classList.add('active');
+    si++;
+    if(si > genSteps.length) clearInterval(stepInterval);
+  }, 900);
+
+  // Build prompt
+  const prompt = `You are a professional CV writer. Based on the user's information below, generate a complete, ATS-optimized CV data in JSON format.
+
+User Information:
+- Basic Info: ${userAnswers.basicInfo}
+- Education: ${userAnswers.education}
+- Experience & Skills: ${userAnswers.experience}
+- Career Goal: ${userAnswers.goal}
+
+Generate a JSON object with this EXACT structure (return ONLY valid JSON, no markdown, no explanation):
+{
+  "fullName": "extracted full name",
+  "jobTitle": "extracted job title",
+  "email": "extracted email",
+  "phone": "extracted phone",
+  "location": "",
+  "linkedin": "",
+  "summary": "Write a powerful 2-3 sentence professional summary based on their background and career goal",
+  "education": [
+    {"degree": "degree name", "school": "institution", "year": "years", "gpa": ""}
+  ],
+  "experience": [
+    {"title": "job title", "company": "company name", "duration": "duration", "description": "Write 2-3 professional bullet points describing their work achievements using action verbs"}
+  ],
+  "skills": ["skill1", "skill2", "skill3", "skill4", "skill5", "skill6", "skill7", "skill8"],
+  "languages": [{"name": "language", "level": "level"}]
+}
+
+Important:
+- Write the summary and experience descriptions professionally, not literally
+- Add metrics and action verbs where possible
+- Extract skills from their experience description
+- If experience is empty (fresh graduate), use "No professional experience yet" as description
+- Keep all fields filled with reasonable data`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const data = await res.json();
+    const rawText = data.content?.[0]?.text || '';
+
+    // Parse JSON
+    let cvData;
+    try {
+      const cleaned = rawText.replace(/```json|```/g, '').trim();
+      cvData = JSON.parse(cleaned);
+    } catch(e) {
+      throw new Error('JSON parse failed');
+    }
+
+    clearInterval(stepInterval);
+
+    // Save to localStorage in builder format
+    const builderData = {
+      docType: 'resume',
+      curTpl: 'modern',
+      accent: '#4f8eff',
+      p: {
+        fullName: cvData.fullName || '',
+        jobTitle: cvData.jobTitle || '',
+        email: cvData.email || '',
+        phone: cvData.phone || '',
+        location: cvData.location || '',
+        linkedin: cvData.linkedin || '',
+        portfolio: '',
+        website: '',
+        summary: cvData.summary || ''
+      },
+      edu: (cvData.education || []).map((e,i) => ({ id:`e${i+1}`, deg:e.degree||'', sch:e.school||'', yr:e.year||'', gpa:e.gpa||'' })),
+      exp: (cvData.experience || []).map((e,i) => ({ id:`x${i+1}`, ttl:e.title||'', co:e.company||'', dur:e.duration||'', desc:e.description||'' })),
+      skills: cvData.skills || [],
+      lang: (cvData.languages || []).map((l,i) => ({ id:`l${i+1}`, n:l.name||'', lv:l.level||'Fluent' })),
+      proj: [], vol: [], awards: [], certs: [], pubs: [], refs: []
+    };
+
+    localStorage.setItem('cvcraft_data', JSON.stringify(builderData));
+
+    // Render CV preview
+    renderCVPreview(cvData);
+
+    // Success message
+    setTimeout(() => {
+      const successMsg = document.createElement('div');
+      successMsg.className = 'msg ai';
+      successMsg.innerHTML = `
+        <div class="msg-av av-ai">✨</div>
+        <div class="msg-bubble">
+          <strong>Your CV is ready! 🎉</strong><br><br>
+          I've generated a professional CV based on your information. You can:<br>
+          • <strong>Preview</strong> the full CV<br>
+          • <strong>Edit</strong> in builder to make changes<br>
+          • <strong>Download</strong> as PDF
+        </div>`;
+      document.getElementById('messages').appendChild(successMsg);
+      scrollMsgs();
+      document.getElementById('successBanner').classList.add('show');
+      document.getElementById('chatInput').disabled = true;
+      document.getElementById('sendBtn').disabled = true;
+      document.getElementById('chatInput').placeholder = 'CV generated! Click Edit or Preview above.';
+    }, 500);
+
+  } catch(e) {
+    clearInterval(stepInterval);
+    // Fallback — use raw data
+    const fallbackData = buildFallbackCV();
+    localStorage.setItem('cvcraft_data', JSON.stringify(fallbackData));
+    renderCVPreviewFallback(fallbackData);
+
+    const errMsg = document.createElement('div');
+    errMsg.className = 'msg ai';
+    errMsg.innerHTML = `
+      <div class="msg-av av-ai">✨</div>
+      <div class="msg-bubble">I've saved your information to the builder. Click <strong>Edit in Builder</strong> to complete your CV with AI assistance there!</div>`;
+    document.getElementById('messages').appendChild(errMsg);
+    scrollMsgs();
+    document.getElementById('successBanner').classList.add('show');
+  }
+}
+
+// ════════════════════════════════
+// RENDER CV PREVIEW
+// ════════════════════════════════
+function renderCVPreview(cv) {
+  const contact = [cv.email, cv.phone, cv.location, cv.linkedin].filter(Boolean);
+
+  let expHtml = '';
+  (cv.experience || []).forEach(e => {
+    expHtml += `<div class="cv-entry">
+      <div class="cv-et">${esc(e.title||'')}</div>
+      <div class="cv-es"><span>${esc(e.company||'')}</span><span>${esc(e.duration||'')}</span></div>
+      ${e.description ? `<div class="cv-ed">${esc(e.description).replace(/\n/g,'<br>')}</div>` : ''}
+    </div>`;
+  });
+
+  let eduHtml = '';
+  (cv.education || []).forEach(e => {
+    eduHtml += `<div class="cv-entry">
+      <div class="cv-et">${esc(e.degree||'')}</div>
+      <div class="cv-es"><span>${esc(e.school||'')}</span><span>${esc(e.year||'')}</span></div>
+    </div>`;
+  });
+
+  const skillsHtml = (cv.skills||[]).length
+    ? `<div class="cv-chips">${cv.skills.map(s=>`<span class="cv-chip">${esc(s)}</span>`).join('')}</div>` : '';
+
+  document.getElementById('cvDoc').innerHTML = `
+    <div class="cv-header">
+      <div class="cv-name">${esc(cv.fullName||'Your Name')}</div>
+      <div class="cv-role">${esc(cv.jobTitle||'')}</div>
+      <div class="cv-contact">${contact.map(c=>`<span>${esc(c)}</span>`).join('')}</div>
+    </div>
+    <div class="cv-body">
+      ${cv.summary ? `<div class="cv-sec"><div class="cv-sec-title">Summary</div><div class="cv-sum">${esc(cv.summary)}</div></div>` : ''}
+      ${expHtml ? `<div class="cv-sec"><div class="cv-sec-title">Experience</div>${expHtml}</div>` : ''}
+      ${eduHtml ? `<div class="cv-sec"><div class="cv-sec-title">Education</div>${eduHtml}</div>` : ''}
+      ${skillsHtml ? `<div class="cv-sec"><div class="cv-sec-title">Skills</div>${skillsHtml}</div>` : ''}
+    </div>`;
+}
+
+function buildFallbackCV() {
+  return {
+    docType:'resume', curTpl:'modern', accent:'#4f8eff',
+    p:{ fullName: userAnswers.basicInfo?.split(',')[0]?.trim() || 'Your Name',
+        jobTitle: userAnswers.basicInfo?.split(',')[1]?.trim() || '',
+        email: userAnswers.basicInfo?.split(',')[2]?.trim() || '',
+        phone: userAnswers.basicInfo?.split(',')[3]?.trim() || '',
+        summary: userAnswers.goal || '', location:'', linkedin:'', portfolio:'', website:'' },
+    edu:[{id:'e1', deg: userAnswers.education?.split(',')[0]?.trim()||'', sch: userAnswers.education?.split(',')[1]?.trim()||'', yr: userAnswers.education?.split(',')[2]?.trim()||'', gpa:''}],
+    exp:[{id:'x1', ttl:'', co:'', dur:'', desc: userAnswers.experience || ''}],
+    skills: [], lang:[], proj:[], vol:[], awards:[], certs:[], pubs:[], refs:[]
+  };
+}
+
+function renderCVPreviewFallback(d) {
+  const p = d.p;
+  document.getElementById('cvDoc').innerHTML = `
+    <div class="cv-header">
+      <div class="cv-name">${esc(p.fullName||'Your Name')}</div>
+      <div class="cv-role">${esc(p.jobTitle||'')}</div>
+      <div class="cv-contact">${[p.email,p.phone].filter(Boolean).map(c=>`<span>${esc(c)}</span>`).join('')}</div>
+    </div>
+    <div class="cv-body">
+      <div class="cv-sec"><div class="cv-sec-title">Summary</div><div class="cv-sum">${esc(p.summary||'')}</div></div>
+    </div>`;
+}
+
+// ════════════════════════════════
+// SKIP
+// ════════════════════════════════
+function skipToBuilder() {
+  window.location.href = 'builder.html';
+}
+
+// ════════════════════════════════
+// ESC
+// ════════════════════════════════
+function esc(s) {
+  if(!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CVCraft — Preview & Export</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&family=Playfair+Display:wght@700;800&family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#080b10;--bg2:#0e1219;--bg3:#141820;--bg4:#1a2030;
+      --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+      --text:#f0f2f5;--muted:#7a8294;
+      --accent:#4f8eff;--accent2:#a78bfa;--green:#34d399;--red:#f87171;
+      --fd:'Syne',sans-serif;--fb:'DM Sans',sans-serif;
+    }
+    html,body{height:100%;overflow:hidden}
+    body{background:var(--bg);color:var(--text);font-family:var(--fb);font-size:15px;display:flex;flex-direction:column}
+
+    /* ── NAV ── */
+    .top-nav{display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;height:54px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;z-index:50;gap:1rem}
+    .nav-logo{font-family:var(--fd);font-weight:800;font-size:1.2rem;letter-spacing:-.03em;background:linear-gradient(135deg,#fff 40%,var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none;flex-shrink:0}
+    .nav-center{display:flex;align-items:center;gap:.35rem;flex:1;justify-content:center;overflow-x:auto;scrollbar-width:none}
+    .nav-center::-webkit-scrollbar{display:none}
+    .tplb{background:var(--bg3);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:.28rem .65rem;font-size:.72rem;font-weight:500;cursor:pointer;transition:all .18s;font-family:var(--fb);white-space:nowrap;flex-shrink:0}
+    .tplb:hover{color:var(--text);border-color:var(--border2)}
+    .tplb.active{background:rgba(79,142,255,.1);border-color:rgba(79,142,255,.3);color:var(--accent)}
+    .nav-right{display:flex;align-items:center;gap:.45rem;flex-shrink:0}
+    .bsm{display:inline-flex;align-items:center;gap:.38rem;padding:.35rem .85rem;border-radius:7px;font-family:var(--fb);font-size:.76rem;font-weight:500;cursor:pointer;transition:all .18s;border:none;text-decoration:none;white-space:nowrap}
+    .bg{background:none;color:var(--muted);border:1px solid var(--border)}
+    .bg:hover{color:var(--text);border-color:var(--border2)}
+    .ba{background:var(--accent);color:#fff}
+    .ba:hover{opacity:.87;transform:translateY(-1px);box-shadow:0 4px 16px rgba(79,142,255,.3)}
+    .bgreen{background:rgba(52,211,153,.1);color:var(--green);border:1px solid rgba(52,211,153,.2)}
+    .bgreen:hover{background:rgba(52,211,153,.18)}
+
+    /* ── LAYOUT ── */
+    .main{display:flex;flex:1;overflow:hidden}
+
+    /* ── SIDEBAR ── */
+    .sidebar{width:230px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0;scrollbar-width:thin;scrollbar-color:var(--bg4) transparent}
+    .sidebar::-webkit-scrollbar{width:3px}
+    .sidebar::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:2px}
+    .sb-sec{padding:.9rem .95rem .75rem;border-bottom:1px solid var(--border)}
+    .sb-sec:last-child{border-bottom:none}
+    .sb-title{font-size:.62rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.7rem}
+
+    /* Template cards */
+    .tpl-cards{display:flex;flex-direction:column;gap:.4rem}
+    .tpl-card{display:flex;align-items:center;gap:.65rem;padding:.55rem .7rem;border-radius:8px;border:1px solid var(--border);cursor:pointer;transition:all .18s;background:var(--bg3)}
+    .tpl-card:hover{border-color:var(--border2)}
+    .tpl-card.active{border-color:rgba(79,142,255,.4);background:rgba(79,142,255,.06)}
+    .tpl-thumb{width:30px;height:40px;border-radius:3px;overflow:hidden;flex-shrink:0;position:relative}
+    .tpl-thumb-inner{position:absolute;inset:0;padding:3px;display:flex;flex-direction:column;gap:1.5px}
+    .tb{height:2.5px;border-radius:1px}
+    .tpl-card-info{flex:1;min-width:0}
+    .tpl-card-name{font-size:.78rem;font-weight:600}
+    .tpl-badge{font-size:.6rem;font-weight:600;padding:.1rem .4rem;border-radius:4px;margin-top:.12rem;display:inline-block}
+    .bf{background:rgba(52,211,153,.1);color:var(--green)}
+    .bp{background:rgba(167,139,250,.1);color:var(--accent2)}
+    .tpl-check{color:var(--accent);font-size:.82rem;display:none}
+    .tpl-card.active .tpl-check{display:block}
+
+    /* Color swatches */
+    .swatches{display:flex;gap:.45rem;flex-wrap:wrap}
+    .sw{width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .18s;position:relative;flex-shrink:0}
+    .sw:hover{transform:scale(1.15)}
+    .sw.active{border-color:var(--text);box-shadow:0 0 0 2px var(--bg2)}
+    .sw::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:.62rem;color:#fff;opacity:0}
+    .sw.active::after{opacity:1}
+
+    /* Font opts */
+    .font-opts{display:flex;flex-direction:column;gap:.38rem}
+    .fo{display:flex;align-items:center;gap:.55rem;padding:.42rem .6rem;border-radius:6px;border:1px solid var(--border);cursor:pointer;transition:all .18s;background:var(--bg3)}
+    .fo:hover{border-color:var(--border2)}
+    .fo.active{border-color:rgba(79,142,255,.3);background:rgba(79,142,255,.06)}
+    .fo-lbl{font-size:.76rem;font-weight:500;flex:1}
+    .fo-prev{font-size:.9rem;color:var(--muted)}
+
+    /* Zoom */
+    .zoom-row{display:flex;align-items:center;gap:.45rem}
+    .zbtn{width:26px;height:26px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:.95rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;font-family:var(--fb);flex-shrink:0}
+    .zbtn:hover{background:var(--bg4);border-color:var(--border2)}
+    .zval{flex:1;text-align:center;font-size:.76rem;font-weight:600}
+
+    /* Toggles */
+    .toggles{display:flex;flex-direction:column;gap:.32rem}
+    .trow{display:flex;align-items:center;justify-content:space-between;padding:.28rem 0}
+    .tlbl{font-size:.78rem;color:var(--muted)}
+    .tog{width:32px;height:17px;background:var(--bg4);border:1px solid var(--border);border-radius:100px;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0}
+    .tog::after{content:'';position:absolute;width:11px;height:11px;background:var(--muted);border-radius:50%;top:2px;left:2px;transition:all .2s}
+    .tog.on{background:rgba(79,142,255,.2);border-color:rgba(79,142,255,.3)}
+    .tog.on::after{left:17px;background:var(--accent)}
+
+    /* ATS Score */
+    .ats-box{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:.8rem}
+    .ats-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:.55rem}
+    .ats-lbl{font-size:.73rem;font-weight:600}
+    .ats-num{font-family:var(--fd);font-size:1.45rem;font-weight:800;color:var(--green)}
+    .ats-bar-bg{height:4px;background:var(--bg4);border-radius:2px;overflow:hidden}
+    .ats-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:2px;transition:width .5s ease}
+    .ats-tips{margin-top:.55rem;display:flex;flex-direction:column;gap:.28rem}
+    .atip{font-size:.68rem;color:var(--muted);display:flex;gap:.38rem;align-items:flex-start}
+    .adot{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:3px}
+    .ag{background:var(--green)}.aa{background:var(--amber,#fbbf24)}.ar{background:var(--red)}
+
+    /* ── CANVAS ── */
+    .canvas{flex:1;overflow:auto;display:flex;flex-direction:column;align-items:center;background:#1c1f26;background-image:radial-gradient(circle,rgba(255,255,255,.025) 1px,transparent 1px);background-size:20px 20px;padding:2rem 1.5rem;gap:0}
+    .canvas-hint{font-size:.68rem;color:rgba(255,255,255,.18);letter-spacing:.06em;text-transform:uppercase;flex-shrink:0;align-self:flex-start;margin-bottom:1.25rem}
+    .cv-wrapper{transform-origin:top center;transition:transform .25s ease}
+
+    /* PAGE BREAK */
+    .page-sep{width:680px;display:flex;align-items:center;gap:.65rem;padding:.5rem 0;flex-shrink:0}
+    .ps-line{flex:1;border-top:1.5px dashed rgba(255,255,255,.1)}
+    .ps-txt{font-size:.62rem;color:rgba(255,255,255,.22);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+
+    /* ── CV DOC ── */
+    .cv-doc{background:#fff;width:680px;min-height:960px;box-shadow:0 12px 60px rgba(0,0,0,.5);border-radius:3px;overflow:hidden;color:#1a1a1a;transition:all .3s ease;flex-shrink:0}
+
+    /* ═══ 10 TEMPLATE STYLES ═══ */
+
+    /* 1. MODERN */
+    .tpl-modern .cv-header{background:#1a1f2e;padding:2.25rem 2.5rem 1.75rem;color:#fff;position:relative;overflow:hidden}
+    .tpl-modern .cv-header::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:var(--cva,#4f8eff);border-radius:50%;opacity:.07}
+    .tpl-modern .cv-name{font-family:'Syne',sans-serif;font-size:2.1rem;font-weight:800;letter-spacing:-.03em;line-height:1}
+    .tpl-modern .cv-role{color:var(--cva,#4f8eff);font-size:.85rem;font-weight:500;margin-top:.25rem;letter-spacing:.04em}
+    .tpl-modern .cv-hbottom{display:flex;align-items:flex-start;gap:1.25rem;margin-top:.9rem;padding-top:.85rem;border-top:1px solid rgba(255,255,255,.1)}
+    .tpl-modern .cv-photo{width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.25);flex-shrink:0}
+    .tpl-modern .cv-contact{display:flex;flex-wrap:wrap;gap:.25rem 1.1rem}
+    .tpl-modern .cv-contact span{font-size:.73rem;color:rgba(255,255,255,.5)}
+    .tpl-modern .cv-body{padding:1.75rem 2.5rem}
+
+    /* 2. MINIMAL */
+    .tpl-minimal .cv-header{padding:2.25rem 2.5rem 1.5rem;border-bottom:1px solid #e8e8e8;display:flex;align-items:center;gap:1.35rem}
+    .tpl-minimal .cv-photo{width:68px;height:68px;border-radius:50%;object-fit:cover;border:1px solid #ddd;flex-shrink:0}
+    .tpl-minimal .cv-header-text{flex:1}
+    .tpl-minimal .cv-name{font-family:'Syne',sans-serif;font-size:2.1rem;font-weight:800;color:#0a0a0a;letter-spacing:-.04em;line-height:1}
+    .tpl-minimal .cv-role{font-size:.85rem;color:#888;margin-top:.2rem}
+    .tpl-minimal .cv-contact{display:flex;flex-wrap:wrap;gap:.22rem 1.3rem;margin-top:.6rem}
+    .tpl-minimal .cv-contact span{font-size:.73rem;color:#aaa}
+    .tpl-minimal .cv-body{padding:1.75rem 2.5rem}
+
+    /* 3. ATS */
+    .tpl-ats .cv-header{padding:1.85rem 2.5rem 1.25rem}
+    .tpl-ats .cv-name{font-family:'Syne',sans-serif;font-size:1.85rem;font-weight:800;color:#0a0a0a}
+    .tpl-ats .cv-role{font-size:.85rem;color:#333;font-weight:500;margin-top:.18rem}
+    .tpl-ats .cv-contact{display:flex;flex-wrap:wrap;gap:.18rem .7rem;margin-top:.5rem;font-size:.76rem;color:#555}
+    .tpl-ats .cv-contact span::after{content:' |';color:#ccc;margin-left:.45rem}
+    .tpl-ats .cv-contact span:last-child::after{content:''}
+    .tpl-ats .cv-body{padding:.5rem 2.5rem 1.75rem}
+
+    /* 4. DEVELOPER */
+    .tpl-developer .cv-header{background:#0d1117;padding:1.85rem 2.5rem;color:#e6edf3;border-bottom:1px solid #30363d;display:flex;align-items:center;gap:1.35rem}
+    .tpl-developer .cv-photo{width:60px;height:60px;border-radius:8px;object-fit:cover;border:1px solid #30363d;flex-shrink:0}
+    .tpl-developer .cv-header-text{flex:1}
+    .tpl-developer .cv-name{font-family:'IBM Plex Mono',monospace;font-size:1.65rem;font-weight:500}
+    .tpl-developer .cv-role{color:#58a6ff;font-size:.8rem;font-family:'IBM Plex Mono',monospace;margin-top:.22rem}
+    .tpl-developer .cv-role::before{content:'> ';color:#3fb950}
+    .tpl-developer .cv-contact{display:flex;flex-wrap:wrap;gap:.22rem 1.2rem;margin-top:.65rem}
+    .tpl-developer .cv-contact span{font-size:.7rem;color:#8b949e;font-family:'IBM Plex Mono',monospace}
+    .tpl-developer .cv-body{padding:1.5rem 2.5rem;background:#fff}
+
+    /* 5. CREATIVE — 2 col */
+    .tpl-creative{display:grid!important;grid-template-columns:210px 1fr}
+    .tpl-creative .cv-sidebar{background:#1a1f2e;padding:2.25rem 1.5rem;color:#fff}
+    .tpl-creative .cv-photo{width:84px;height:84px;border-radius:50%;object-fit:cover;border:3px solid var(--cva,#4f8eff);margin-bottom:1rem;display:block}
+    .tpl-creative .cv-photo-pl{width:84px;height:84px;border-radius:50%;background:rgba(79,142,255,.15);border:3px solid var(--cva,#4f8eff);display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:rgba(255,255,255,.4);margin-bottom:1rem}
+    .tpl-creative .cv-name{font-family:'Syne',sans-serif;font-size:1.25rem;font-weight:800;line-height:1.15;color:#fff}
+    .tpl-creative .cv-role{color:var(--cva,#4f8eff);font-size:.76rem;font-weight:500;margin-top:.28rem}
+    .tpl-creative .cv-contact{margin-top:1.3rem;display:flex;flex-direction:column;gap:.42rem}
+    .tpl-creative .cv-contact span{font-size:.7rem;color:rgba(255,255,255,.5)}
+    .tpl-creative .cv-sb-title{font-size:.58rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--cva,#4f8eff);margin:1.2rem 0 .55rem}
+    .tpl-creative .cv-sb-chip{display:inline-block;background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);font-size:.68rem;padding:.2rem .55rem;border-radius:4px;margin:.15rem .15rem 0 0}
+    .tpl-creative .cv-sb-lang{display:flex;justify-content:space-between;font-size:.72rem;color:rgba(255,255,255,.6);padding:.2rem 0;border-bottom:1px solid rgba(255,255,255,.07)}
+    .tpl-creative .cv-main{padding:2.25rem 2rem}
+
+    /* 6. CORPORATE */
+    .tpl-corporate .cv-header{background:var(--cva,#1e293b);padding:1.85rem 2.5rem;color:#fff;display:flex;align-items:center;gap:1.5rem}
+    .tpl-corporate .cv-photo{width:70px;height:70px;border-radius:4px;object-fit:cover;border:2px solid rgba(255,255,255,.2);flex-shrink:0}
+    .tpl-corporate .cv-header-text{flex:1}
+    .tpl-corporate .cv-name{font-family:'Syne',sans-serif;font-size:1.7rem;font-weight:800;letter-spacing:-.02em}
+    .tpl-corporate .cv-role{font-size:.7rem;color:rgba(255,255,255,.65);margin-top:.2rem;letter-spacing:.07em;text-transform:uppercase}
+    .tpl-corporate .cv-contact{display:flex;flex-wrap:wrap;gap:.22rem 1.1rem;margin-top:.65rem}
+    .tpl-corporate .cv-contact span{font-size:.7rem;color:rgba(255,255,255,.5)}
+    .tpl-corporate .cv-body{padding:1.5rem 2.5rem}
+
+    /* 7. ACADEMIC */
+    .tpl-academic .cv-header{padding:2.25rem 2.5rem 1.4rem;text-align:center;border-bottom:2px solid #111;display:flex;flex-direction:column;align-items:center}
+    .tpl-academic .cv-photo{width:84px;height:84px;border-radius:50%;object-fit:cover;border:2px solid #999;margin-bottom:.8rem}
+    .tpl-academic .cv-name{font-family:'Playfair Display',serif;font-size:2.1rem;font-weight:800;color:#111;letter-spacing:-.01em}
+    .tpl-academic .cv-role{font-size:.85rem;color:#555;margin-top:.2rem;font-style:italic}
+    .tpl-academic .cv-contact{display:flex;flex-wrap:wrap;gap:.22rem 1.3rem;justify-content:center;margin-top:.7rem}
+    .tpl-academic .cv-contact span{font-size:.73rem;color:#888}
+    .tpl-academic .cv-body{padding:1.6rem 2.5rem}
+
+    /* 8. EXECUTIVE */
+    .tpl-executive .cv-header{padding:2.5rem 2.5rem 1.6rem;display:flex;align-items:center;gap:1.6rem;border-bottom:3px solid #111}
+    .tpl-executive .cv-photo{width:92px;height:92px;border-radius:4px;object-fit:cover;border:1px solid #ddd;flex-shrink:0}
+    .tpl-executive .cv-header-text{flex:1}
+    .tpl-executive .cv-name{font-family:'Syne',sans-serif;font-size:2.25rem;font-weight:800;color:#0a0a0a;letter-spacing:-.04em}
+    .tpl-executive .cv-role{font-size:.7rem;color:#555;font-weight:500;margin-top:.25rem;letter-spacing:.08em;text-transform:uppercase}
+    .tpl-executive .cv-contact{display:flex;flex-wrap:wrap;gap:.28rem 1.5rem;margin-top:.75rem}
+    .tpl-executive .cv-contact span{font-size:.73rem;color:#777}
+    .tpl-executive .cv-body{padding:1.6rem 2.5rem}
+
+    /* 9. COMPACT — 2 col */
+    .tpl-compact{display:grid!important;grid-template-columns:165px 1fr}
+    .tpl-compact .cv-sidebar{background:#f8f9fa;border-right:1px solid #e5e5e5;padding:1.6rem 1.1rem}
+    .tpl-compact .cv-photo{width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid #ddd;margin-bottom:.75rem}
+    .tpl-compact .cv-photo-pl{width:72px;height:72px;border-radius:50%;background:#e5e5e5;display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:#aaa;margin-bottom:.75rem}
+    .tpl-compact .cv-name{font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;color:#111;line-height:1.2}
+    .tpl-compact .cv-role{font-size:.72rem;color:#666;margin-top:.2rem}
+    .tpl-compact .cv-contact{margin-top:.9rem;display:flex;flex-direction:column;gap:.35rem}
+    .tpl-compact .cv-contact span{font-size:.67rem;color:#888}
+    .tpl-compact .cv-sb-title{font-size:.57rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--cva,#4f8eff);margin:1rem 0 .45rem}
+    .tpl-compact .cv-sb-chip{display:inline-block;background:rgba(0,0,0,.06);color:#555;font-size:.65rem;padding:.18rem .5rem;border-radius:4px;margin:.12rem .12rem 0 0}
+    .tpl-compact .cv-main{padding:1.4rem 1.6rem}
+
+    /* 10. TIMELINE */
+    .tpl-timeline .cv-header{padding:2rem 2.5rem 1.4rem;border-left:5px solid var(--cva,#4f8eff);display:flex;align-items:center;gap:1.35rem}
+    .tpl-timeline .cv-photo{width:70px;height:70px;border-radius:50%;object-fit:cover;border:3px solid var(--cva,#4f8eff);flex-shrink:0}
+    .tpl-timeline .cv-header-text{flex:1}
+    .tpl-timeline .cv-name{font-family:'Syne',sans-serif;font-size:1.9rem;font-weight:800;color:#111;letter-spacing:-.03em}
+    .tpl-timeline .cv-role{font-size:.82rem;color:var(--cva,#4f8eff);font-weight:500;margin-top:.15rem}
+    .tpl-timeline .cv-contact{display:flex;flex-wrap:wrap;gap:.22rem 1.1rem;margin-top:.6rem}
+    .tpl-timeline .cv-contact span{font-size:.73rem;color:#888}
+    .tpl-timeline .cv-body{padding:1.5rem 2.5rem;border-left:5px solid var(--cva,#4f8eff)}
+
+    /* ═══ SHARED BODY STYLES ═══ */
+    .cv-section{margin-bottom:1.4rem}
+    .cv-sec-title{font-size:.6rem;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--cva,#4f8eff);border-bottom:1.5px solid var(--cva,#4f8eff);padding-bottom:.28rem;margin-bottom:.85rem}
+    .tpl-ats .cv-sec-title{color:#111;border-color:#111}
+    .tpl-academic .cv-sec-title{font-family:'Playfair Display',serif;font-size:.75rem;text-transform:none;letter-spacing:0;font-style:italic;color:#111;border-color:#111}
+    .tpl-developer .cv-sec-title{font-family:'IBM Plex Mono',monospace;color:#3fb950;border-color:#3fb950}
+    .tpl-developer .cv-sec-title::before{content:'## ';color:#58a6ff}
+    .cv-entry{margin-bottom:.95rem}
+    .cv-entry-header{display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem}
+    .cv-entry-title{font-size:.87rem;font-weight:700;color:#111}
+    .cv-entry-sub{font-size:.77rem;color:#666;margin-top:.08rem}
+    .cv-entry-date{font-size:.7rem;color:#888;white-space:nowrap;flex-shrink:0}
+    .cv-entry-desc{font-size:.78rem;color:#444;margin-top:.38rem;line-height:1.58}
+    .cv-chips{display:flex;flex-wrap:wrap;gap:.38rem}
+    .cv-chip{background:#eff4ff;color:var(--cva,#4f8eff);font-size:.7rem;font-weight:600;padding:.18rem .58rem;border-radius:4px}
+    .tpl-ats .cv-chip{background:none;color:#333;font-size:.77rem;padding:0;border-radius:0}
+    .tpl-ats .cv-chip::after{content:' · ';color:#bbb}
+    .tpl-ats .cv-chip:last-child::after{content:''}
+    .tpl-developer .cv-chip{background:#f6f8fa;color:#24292f;border:1px solid #d0d7de;font-family:'IBM Plex Mono',monospace;border-radius:20px}
+    .cv-lang-item{display:flex;justify-content:space-between;font-size:.78rem;color:#333;padding:.2rem 0;border-bottom:1px solid #f0f0f0}
+    .cv-lang-item:last-child{border-bottom:none}
+    .cv-cert-item{font-size:.78rem;color:#333;padding:.2rem 0;display:flex;justify-content:space-between;border-bottom:1px solid #f0f0f0}
+    .cv-cert-item:last-child{border-bottom:none}
+    .cv-summary{font-size:.8rem;color:#444;line-height:1.67}
+    .cv-award-item{font-size:.78rem;color:#333;padding:.25rem 0;border-bottom:1px solid #f0f0f0}
+    .cv-pub-item{font-size:.74rem;color:#333;padding:.25rem 0;border-bottom:1px solid #f0f0f0;line-height:1.5}
+    .cv-ref-item{margin-bottom:.75rem}
+    .cv-ref-name{font-size:.82rem;font-weight:600;color:#111}
+    .cv-ref-detail{font-size:.71rem;color:#666}
+    .cv-vol-entry{margin-bottom:.85rem}
+    .cv-pnum{text-align:right;font-size:.63rem;color:#ccc;padding:.5rem 1.5rem;border-top:1px solid #f5f5f5}
+
+    /* TOAST */
+    .toast{position:fixed;bottom:1.75rem;left:50%;transform:translateX(-50%) translateY(14px);background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:.62rem 1.1rem;font-size:.78rem;color:var(--text);z-index:999;opacity:0;transition:all .3s;display:flex;align-items:center;gap:.45rem;pointer-events:none}
+    .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+    /* PRINT */
+    @media print{
+      .top-nav,.sidebar,.canvas-hint,.page-sep,.toast{display:none!important}
+      body{background:#fff;overflow:visible;height:auto}
+      .main{display:block}
+      .canvas{background:#fff;padding:0;display:block}
+      .cv-wrapper{transform:none!important}
+      .cv-doc{box-shadow:none;width:100%;min-height:auto;border-radius:0}
+      @page{margin:0;size:A4}
+    }
+    @media(max-width:1024px){.sidebar{width:195px}}
+    @media(max-width:768px){.sidebar{display:none}.cv-doc{width:100%}}
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="top-nav">
+  <a href="index.html" class="nav-logo">CVCraft</a>
+  <div class="nav-center" id="navTpls"></div>
+  <div class="nav-right">
+    <a href="builder.html" class="bsm bg">✏️ Edit</a>
+    <button class="bsm bg" onclick="shareLink()">🔗 Share</button>
+    <button class="bsm ba" onclick="exportPDF()">⬇ Download PDF</button>
+  </div>
+</nav>
+
+<div class="main">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+
+    <div class="sb-sec">
+      <div class="sb-title">Templates</div>
+      <div class="tpl-cards" id="sideCards"></div>
+    </div>
+
+    <div class="sb-sec">
+      <div class="sb-title">Accent Color</div>
+      <div class="swatches" id="swatches">
+        <div class="sw active" style="background:#4f8eff" data-c="#4f8eff" data-l="#eff4ff" onclick="setColor(this)"></div>
+        <div class="sw" style="background:#a78bfa" data-c="#a78bfa" data-l="#f3f0ff" onclick="setColor(this)"></div>
+        <div class="sw" style="background:#34d399" data-c="#34d399" data-l="#ecfdf5" onclick="setColor(this)"></div>
+        <div class="sw" style="background:#f87171" data-c="#f87171" data-l="#fff1f1" onclick="setColor(this)"></div>
+        <div class="sw" style="background:#fbbf24" data-c="#fbbf24" data-l="#fffbeb" onclick="setColor(this)"></div>
+        <div class="sw" style="background:#2dd4bf" data-c="#2dd4bf" data-l="#f0fdfa" onclick="setColor(this)"></div>
+        <div class="sw" style="background:#f472b6" data-c="#f472b6" data-l="#fdf2f8" onclick="setColor(this)"></div>
+        <div class="sw" style="background:#111" data-c="#111" data-l="#f5f5f5" onclick="setColor(this)"></div>
+      </div>
+    </div>
+
+    <div class="sb-sec">
+      <div class="sb-title">Font Style</div>
+      <div class="font-opts" id="fontOpts">
+        <div class="fo active" data-font="syne" onclick="setFont(this)">
+          <div class="fo-lbl" style="font-family:'Syne',sans-serif">Syne</div>
+          <div class="fo-prev" style="font-family:'Syne',sans-serif">Aa</div>
+        </div>
+        <div class="fo" data-font="playfair" onclick="setFont(this)">
+          <div class="fo-lbl" style="font-family:'Playfair Display',serif">Playfair</div>
+          <div class="fo-prev" style="font-family:'Playfair Display',serif">Aa</div>
+        </div>
+        <div class="fo" data-font="space" onclick="setFont(this)">
+          <div class="fo-lbl" style="font-family:'Space Grotesk',sans-serif">Space Grotesk</div>
+          <div class="fo-prev" style="font-family:'Space Grotesk',sans-serif">Aa</div>
+        </div>
+        <div class="fo" data-font="mono" onclick="setFont(this)">
+          <div class="fo-lbl" style="font-family:'IBM Plex Mono',monospace">IBM Mono</div>
+          <div class="fo-prev" style="font-family:'IBM Plex Mono',monospace">Aa</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sb-sec">
+      <div class="sb-title">Zoom</div>
+      <div class="zoom-row">
+        <button class="zbtn" onclick="zoom(-0.1)">−</button>
+        <div class="zval" id="zval">85%</div>
+        <button class="zbtn" onclick="zoom(0.1)">+</button>
+        <button class="zbtn" onclick="zfit()" style="font-size:.65rem;width:auto;padding:0 .5rem">Fit</button>
+      </div>
+    </div>
+
+    <div class="sb-sec">
+      <div class="sb-title">Sections</div>
+      <div class="toggles">
+        <div class="trow"><span class="tlbl">Summary</span><div class="tog on" onclick="togSec('summary',this)"></div></div>
+        <div class="trow"><span class="tlbl">Experience</span><div class="tog on" onclick="togSec('experience',this)"></div></div>
+        <div class="trow"><span class="tlbl">Education</span><div class="tog on" onclick="togSec('education',this)"></div></div>
+        <div class="trow"><span class="tlbl">Skills</span><div class="tog on" onclick="togSec('skills',this)"></div></div>
+        <div class="trow"><span class="tlbl">Projects</span><div class="tog on" onclick="togSec('projects',this)"></div></div>
+        <div class="trow"><span class="tlbl">Languages</span><div class="tog on" onclick="togSec('languages',this)"></div></div>
+        <div class="trow"><span class="tlbl">Volunteer</span><div class="tog on" onclick="togSec('volunteer',this)"></div></div>
+        <div class="trow"><span class="tlbl">Awards</span><div class="tog on" onclick="togSec('awards',this)"></div></div>
+        <div class="trow"><span class="tlbl">Certs/Pubs</span><div class="tog on" onclick="togSec('certs',this)"></div></div>
+        <div class="trow"><span class="tlbl">References</span><div class="tog on" onclick="togSec('references',this)"></div></div>
+      </div>
+    </div>
+
+    <div class="sb-sec">
+      <div class="sb-title">ATS Score</div>
+      <div class="ats-box">
+        <div class="ats-head">
+          <span class="ats-lbl">Resume Score</span>
+          <span class="ats-num" id="atsNum">--</span>
+        </div>
+        <div class="ats-bar-bg"><div class="ats-bar-fill" id="atsBar" style="width:0%"></div></div>
+        <div class="ats-tips" id="atsTips">
+          <div class="atip"><span class="adot aa"></span>Fill in your data to see score</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CANVAS -->
+  <div class="canvas" id="canvas">
+    <div class="canvas-hint">A4 Preview · Ctrl+P to print</div>
+    <div class="cv-wrapper" id="cvWrap">
+      <div class="cv-doc tpl-modern" id="cvDoc"></div>
+    </div>
+    <div class="page-sep" id="pageSep" style="display:none">
+      <div class="ps-line"></div>
+      <span class="ps-txt">Page 2</span>
+      <div class="ps-line"></div>
+    </div>
+    <div class="cv-doc tpl-modern" id="cvDoc2" style="display:none;margin-top:0"></div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════
+// CONFIG
+// ════════════════════════════════
+const TPLS = [
+  {id:'modern',   n:'Modern',    free:true},
+  {id:'minimal',  n:'Minimal',   free:true},
+  {id:'ats',      n:'ATS',       free:true},
+  {id:'developer',n:'Developer', free:true},
+  {id:'creative', n:'Creative',  free:false},
+  {id:'corporate',n:'Corporate', free:false},
+  {id:'academic', n:'Academic',  free:false},
+  {id:'executive',n:'Executive', free:false},
+  {id:'compact',  n:'Compact',   free:true},
+  {id:'timeline', n:'Timeline',  free:false},
+];
+
+const TBGS={modern:'#1a1f2e',minimal:'#fff',ats:'#fff',developer:'#0d1117',creative:'#1a1f2e',corporate:'#1e293b',academic:'#fff',executive:'#fff',compact:'#f8f9fa',timeline:'#fff'};
+const TBARS={
+  modern:[[70,3,'#4f8eff'],[45,2,'rgba(255,255,255,.3)']],
+  minimal:[[65,3,'#111'],[40,2,'#aaa'],[100,1,'#e5e5e5']],
+  ats:[[60,3,'#111'],[100,1.5,'#111'],[80,1.5,'#555']],
+  developer:[[65,3,'#e6edf3'],[50,2,'#58a6ff'],[100,1,'#30363d']],
+  creative:[[80,3,'#a78bfa'],[55,2,'rgba(255,255,255,.3)']],
+  corporate:[[70,3,'#fff'],[50,2,'rgba(255,255,255,.5)']],
+  academic:[[65,3,'#111'],[100,2,'#111'],[60,1.5,'#555']],
+  executive:[[80,4,'#111'],[55,1.5,'#444'],[100,1,'#eee']],
+  compact:[[60,3,'#111'],[40,2,'#666'],[100,1,'#e5e5e5']],
+  timeline:[[70,3,'#4f8eff'],[50,2,'#666'],[100,1,'#e5e5e5']],
+};
+
+const FONTS={syne:"'Syne',sans-serif",playfair:"'Playfair Display',serif",space:"'Space Grotesk',sans-serif",mono:"'IBM Plex Mono',monospace"};
+
+// ════════════════════════════════
+// STATE
+// ════════════════════════════════
+let curTpl='modern', curZoom=0.85, curFont='syne';
+let accent='#4f8eff', accentL='#eff4ff';
+const hidden=new Set();
+
+// Default demo data
+let D={
+  docType:'resume',
+  p:{fullName:'Ali Hassan',jobTitle:'Full-Stack Developer',email:'ali@email.com',phone:'+92 300 1234567',location:'Lahore, Pakistan',linkedin:'linkedin.com/in/alihassan',portfolio:'github.com/alihassan',website:'',summary:'Passionate full-stack developer with 3+ years of experience building scalable web applications. Expert in React, Node.js, and cloud technologies, delivering 15+ successful projects.'},
+  edu:[{id:'e1',deg:'BS Computer Science',sch:'FAST University',yr:'2019 – 2023',gpa:'3.7'}],
+  exp:[
+    {id:'x1',ttl:'Frontend Developer',co:'Tech Solutions Ltd.',dur:'Jan 2023 – Present',desc:'Developed and maintained 10+ responsive React applications serving 50k+ monthly users. Reduced page load time by 40% through code splitting and lazy loading.'},
+    {id:'x2',ttl:'Junior Web Developer',co:'DigitalCraft Agency',dur:'Jun 2022 – Dec 2022',desc:'Built pixel-perfect UI components from Figma designs. Integrated REST APIs. Delivered 5 client projects on time and within budget.'}
+  ],
+  skills:['React.js','Node.js','TypeScript','Python','MongoDB','PostgreSQL','Docker','AWS','Git','Figma'],
+  proj:[
+    {id:'p1',n:'E-Commerce Platform',tech:'React, Node.js, MongoDB, Stripe',desc:'Full-stack marketplace with real-time inventory and payment processing. Scaled to 1000+ products.',url:'github.com/ali/ecommerce'},
+    {id:'p2',n:'AI Resume Builder',tech:'Python, Flask, OpenAI',desc:'SaaS app using AI to create ATS-optimized resumes. 500+ users in first month.',url:'github.com/ali/resumeai'}
+  ],
+  lang:[{id:'l1',n:'English',lv:'Fluent'},{id:'l2',n:'Urdu',lv:'Native'}],
+  vol:[],awards:[],certs:[{id:'c1',n:'AWS Solutions Architect',iss:'Amazon Web Services',yr:'2023'}],pubs:[],refs:[],
+  photo:null
+};
+
+// ════════════════════════════════
+// INIT
+// ════════════════════════════════
+function init(){
+  // Load from localStorage
+  try{
+    const saved=localStorage.getItem('cvcraft_data');
+    if(saved){const p=JSON.parse(saved);if(p?.p?.fullName)D={...D,...p};}
+  }catch(e){}
+
+  // Restore settings
+  if(D.curTpl) curTpl=D.curTpl;
+  if(D.accent) accent=D.accent;
+  if(D.accentL) accentL=D.accentL;
+  if(D.photo) {
+    // sync color swatch
+    document.querySelectorAll('.sw').forEach(s=>{s.classList.toggle('active',s.dataset.c===accent);});
+  }
+
+  buildNavTpls();
+  buildSideCards();
+  applyZoom();
+  render();
+  calcATS();
+}
+
+// ════════════════════════════════
+// TEMPLATE BUTTONS
+// ════════════════════════════════
+function buildNavTpls(){
+  document.getElementById('navTpls').innerHTML=TPLS.map(t=>
+    `<button class="tplb ${t.id===curTpl?'active':''}" id="ntpl-${t.id}" onclick="setTpl('${t.id}')">${t.n}</button>`
+  ).join('');
+}
+
+function buildSideCards(){
+  document.getElementById('sideCards').innerHTML=TPLS.map(t=>`
+    <div class="tpl-card ${t.id===curTpl?'active':''}" id="sc-${t.id}" onclick="setTpl('${t.id}')">
+      <div class="tpl-thumb" style="background:${TBGS[t.id]}">
+        <div class="tpl-thumb-inner">
+          ${(TBARS[t.id]||[]).map(b=>`<div class="tb" style="width:${b[0]}%;height:${b[1]}px;background:${b[2]}"></div>`).join('')}
+        </div>
+      </div>
+      <div class="tpl-card-info">
+        <div class="tpl-card-name">${t.n}</div>
+        <span class="tpl-badge ${t.free?'bf':'bp'}">${t.free?'Free':'Pro'}</span>
+      </div>
+      <span class="tpl-check">✓</span>
+    </div>`).join('');
+}
+
+function setTpl(id){
+  curTpl=id;
+  document.querySelectorAll('.tplb').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tpl-card').forEach(c=>c.classList.remove('active'));
+  document.getElementById(`ntpl-${id}`)?.classList.add('active');
+  document.getElementById(`sc-${id}`)?.classList.add('active');
+  render();
+  showToast(`Template: ${TPLS.find(t=>t.id===id)?.n}`);
+}
+
+// ════════════════════════════════
+// COLOR + FONT
+// ════════════════════════════════
+function setColor(el){
+  document.querySelectorAll('.sw').forEach(s=>s.classList.remove('active'));
+  el.classList.add('active');
+  accent=el.dataset.c; accentL=el.dataset.l;
+  render();
+}
+
+function setFont(el){
+  document.querySelectorAll('.fo').forEach(f=>f.classList.remove('active'));
+  el.classList.add('active');
+  curFont=el.dataset.font;
+  render();
+}
+
+// ════════════════════════════════
+// ZOOM
+// ════════════════════════════════
+function zoom(d){curZoom=Math.max(0.4,Math.min(1.5,curZoom+d));applyZoom();}
+function zfit(){
+  const w=document.getElementById('canvas').clientWidth-80;
+  curZoom=Math.min(1,w/680); applyZoom();
+}
+function applyZoom(){
+  document.getElementById('cvWrap').style.transform=`scale(${curZoom})`;
+  document.getElementById('zval').textContent=Math.round(curZoom*100)+'%';
+}
+
+// ════════════════════════════════
+// SECTION TOGGLES
+// ════════════════════════════════
+function togSec(name,el){
+  el.classList.toggle('on');
+  hidden.has(name)?hidden.delete(name):hidden.add(name);
+  render();
+}
+const show=s=>!hidden.has(s);
+
+// ════════════════════════════════
+// RENDER
+// ════════════════════════════════
+function render(){
+  const doc=document.getElementById('cvDoc');
+  doc.className=`cv-doc tpl-${curTpl}`;
+  doc.style.setProperty('--cva',accent);
+  doc.style.fontFamily=FONTS[curFont];
+
+  const isSide=['creative','compact'].includes(curTpl);
+  const noPhoto=['ats'].includes(curTpl);
+  const p=D.p||{};
+  const photo=D.photo||null;
+  const init=(p.fullName||'?').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+  const cp=[p.email,p.phone,p.location,p.linkedin,p.portfolio,p.website].filter(Boolean);
+  const cHtml=cp.map(c=>`<span>${esc(c)}</span>`).join('');
+
+  let html='';
+
+  if(curTpl==='creative'){
+    html=buildCreative(p,photo,init,cp);
+  } else if(curTpl==='compact'){
+    html=buildCompact(p,photo,init,cp);
+  } else if(curTpl==='academic'){
+    html=`<div class="cv-header">${photo?`<img src="${photo}" class="cv-photo" alt="">`:''}<div class="cv-name">${esc(p.fullName)||'Your Name'}</div>${p.jobTitle?`<div class="cv-role">${esc(p.jobTitle)}</div>`:''}<div class="cv-contact">${cHtml}</div></div><div class="cv-body">${bodyHtml(p)}</div>`;
+  } else if(['modern','developer','corporate','executive'].includes(curTpl)){
+    html=`<div class="cv-header"><div class="cv-name">${esc(p.fullName)||'<span style="opacity:.3">Your Name</span>'}</div>${p.jobTitle?`<div class="cv-role">${esc(p.jobTitle)}</div>`:''}<div class="cv-hbottom">${photo&&!noPhoto?`<img src="${photo}" class="cv-photo" alt="">`:''}<div class="cv-contact">${cHtml}</div></div></div><div class="cv-body">${bodyHtml(p)}</div>`;
+  } else {
+    // minimal, ats, timeline
+    html=`<div class="cv-header">${photo&&!noPhoto?`<img src="${photo}" class="cv-photo" alt="">`:''}<div class="cv-header-text"><div class="cv-name">${esc(p.fullName)||'<span style="opacity:.3">Your Name</span>'}</div>${p.jobTitle?`<div class="cv-role">${esc(p.jobTitle)}</div>`:''}<div class="cv-contact">${cHtml}</div></div></div><div class="cv-body">${bodyHtml(p)}</div>`;
+  }
+
+  doc.innerHTML=html+`<div class="cv-pnum">Page 1</div>`;
+  calcATS();
+}
+
+// ════════════════════════════════
+// CREATIVE TEMPLATE
+// ════════════════════════════════
+function buildCreative(p,photo,init,cp){
+  const sideSkills=(D.skills||[]).length&&show('skills')?
+    `<div class="cv-sb-title">Skills</div>${D.skills.map(s=>`<span class="cv-sb-chip">${esc(s)}</span>`).join('')}`:'';
+  const sideLangs=(D.lang||[]).filter(l=>l.n).length&&show('languages')?
+    `<div class="cv-sb-title">Languages</div>${D.lang.filter(l=>l.n).map(l=>`<div class="cv-sb-lang"><span>${esc(l.n)}</span><span>${esc(l.lv)}</span></div>`).join('')}`:'';
+  return `
+    <div class="cv-sidebar">
+      ${photo?`<img src="${photo}" class="cv-photo" alt="">`:`<div class="cv-photo-pl">${init}</div>`}
+      <div class="cv-name">${esc(p.fullName)||'Your Name'}</div>
+      ${p.jobTitle?`<div class="cv-role">${esc(p.jobTitle)}</div>`:''}
+      <div class="cv-contact">${cp.map(c=>`<span>${esc(c)}</span>`).join('')}</div>
+      ${sideSkills}${sideLangs}
+    </div>
+    <div class="cv-main" style="--cva:${accent}">${bodyHtml(p,true)}</div>`;
+}
+
+// ════════════════════════════════
+// COMPACT TEMPLATE
+// ════════════════════════════════
+function buildCompact(p,photo,init,cp){
+  const sideSkills=(D.skills||[]).length&&show('skills')?
+    `<div class="cv-sb-title">Skills</div>${D.skills.map(s=>`<span class="cv-sb-chip">${esc(s)}</span>`).join('')}`:'';
+  return `
+    <div class="cv-sidebar">
+      ${photo?`<img src="${photo}" class="cv-photo" alt="">`:`<div class="cv-photo-pl">${init}</div>`}
+      <div class="cv-name">${esc(p.fullName)||'Your Name'}</div>
+      ${p.jobTitle?`<div class="cv-role">${esc(p.jobTitle)}</div>`:''}
+      <div class="cv-contact">${cp.map(c=>`<span>${esc(c)}</span>`).join('')}</div>
+      ${sideSkills}
+    </div>
+    <div class="cv-main" style="--cva:${accent}">${bodyHtml(p,true)}</div>`;
+}
+
+// ════════════════════════════════
+// BODY HTML (shared sections)
+// ════════════════════════════════
+function bodyHtml(p, skipSL=false){
+  let h='';
+
+  if(show('summary')&&p.summary)
+    h+=`<div class="cv-section"><div class="cv-sec-title">Summary</div><div class="cv-summary">${esc(p.summary)}</div></div>`;
+
+  const xs=(D.exp||[]).filter(e=>e.ttl||e.co);
+  if(show('experience')&&xs.length){
+    h+=`<div class="cv-section"><div class="cv-sec-title">Experience</div>`;
+    xs.forEach(e=>{
+      h+=`<div class="cv-entry"><div class="cv-entry-header"><div><div class="cv-entry-title">${esc(e.ttl)}</div><div class="cv-entry-sub">${esc(e.co)}</div></div><div class="cv-entry-date">${esc(e.dur)}</div></div>${e.desc?`<div class="cv-entry-desc">${esc(e.desc).replace(/\n/g,'<br>')}</div>`:''}</div>`;
+    });
+    h+=`</div>`;
+  }
+
+  const es=(D.edu||[]).filter(e=>e.deg||e.sch);
+  if(show('education')&&es.length){
+    h+=`<div class="cv-section"><div class="cv-sec-title">Education</div>`;
+    es.forEach(e=>{
+      h+=`<div class="cv-entry"><div class="cv-entry-header"><div><div class="cv-entry-title">${esc(e.deg)}</div><div class="cv-entry-sub">${esc(e.sch)}</div></div><div class="cv-entry-date">${esc(e.yr)}${e.gpa?' · GPA: '+esc(e.gpa):''}</div></div></div>`;
+    });
+    h+=`</div>`;
+  }
+
+  if(!skipSL&&show('skills')&&(D.skills||[]).length)
+    h+=`<div class="cv-section"><div class="cv-sec-title">Skills</div><div class="cv-chips">${D.skills.map(s=>`<span class="cv-chip">${esc(s)}</span>`).join('')}</div></div>`;
+
+  const pj=(D.proj||[]).filter(e=>e.n);
+  if(show('projects')&&pj.length){
+    h+=`<div class="cv-section"><div class="cv-sec-title">Projects</div>`;
+    pj.forEach(e=>{
+      h+=`<div class="cv-entry"><div class="cv-entry-title">${esc(e.n)}${e.tech?` <span style="font-weight:400;color:#888;font-size:.74rem">· ${esc(e.tech)}</span>`:''}</div>${e.desc?`<div class="cv-entry-desc">${esc(e.desc)}</div>`:''}${e.url?`<div style="font-size:.68rem;color:${accent};margin-top:.18rem">${esc(e.url)}</div>`:''}</div>`;
+    });
+    h+=`</div>`;
+  }
+
+  if(!skipSL){
+    const ls=(D.lang||[]).filter(e=>e.n);
+    if(show('languages')&&ls.length){
+      h+=`<div class="cv-section"><div class="cv-sec-title">Languages</div>`;
+      ls.forEach(e=>{h+=`<div class="cv-lang-item"><span>${esc(e.n)}</span><span style="color:#888;font-size:.7rem">${esc(e.lv)}</span></div>`;});
+      h+=`</div>`;
+    }
+  }
+
+  const vs=(D.vol||[]).filter(e=>e.role||e.org);
+  if(show('volunteer')&&vs.length){
+    h+=`<div class="cv-section"><div class="cv-sec-title">Volunteer Work</div>`;
+    vs.forEach(e=>{
+      h+=`<div class="cv-vol-entry"><div class="cv-entry-header"><div><div class="cv-entry-title">${esc(e.role)}</div><div class="cv-entry-sub">${esc(e.org)}</div></div><div class="cv-entry-date">${esc(e.dur)}</div></div>${e.desc?`<div class="cv-entry-desc">${esc(e.desc)}</div>`:''}</div>`;
+    });
+    h+=`</div>`;
+  }
+
+  const aw=(D.awards||[]).filter(e=>e.ttl);
+  if(show('awards')&&aw.length){
+    h+=`<div class="cv-section"><div class="cv-sec-title">Awards & Honours</div>`;
+    aw.forEach(e=>{h+=`<div class="cv-award-item"><strong>${esc(e.ttl)}</strong>${e.org?' — '+esc(e.org):''}${e.yr?' ('+esc(e.yr)+')':''}${e.desc?`<div style="font-size:.7rem;color:#666;margin-top:.12rem">${esc(e.desc)}</div>`:''}</div>`;});
+    h+=`</div>`;
+  }
+
+  if(show('certs')){
+    if(D.docType==='cv'){
+      const pb=(D.pubs||[]).filter(e=>e.ttl);
+      if(pb.length){
+        h+=`<div class="cv-section"><div class="cv-sec-title">Publications</div>`;
+        pb.forEach(e=>{h+=`<div class="cv-pub-item">${e.au?esc(e.au)+'. ':''}${e.yr?'('+esc(e.yr)+'). ':''}${esc(e.ttl)}${e.jn?`. <em>${esc(e.jn)}</em>`:''}</div>`;});
+        h+=`</div>`;
+      }
+    } else {
+      const cs=(D.certs||[]).filter(e=>e.n);
+      if(cs.length){
+        h+=`<div class="cv-section"><div class="cv-sec-title">Certifications</div>`;
+        cs.forEach(e=>{h+=`<div class="cv-cert-item"><span>${esc(e.n)}${e.iss?' — '+esc(e.iss):''}</span><span style="color:#888;font-size:.7rem">${esc(e.yr)}</span></div>`;});
+        h+=`</div>`;
+      }
+    }
+  }
+
+  const rs=(D.refs||[]).filter(e=>e.n);
+  if(show('references')&&rs.length){
+    h+=`<div class="cv-section"><div class="cv-sec-title">References</div>`;
+    rs.forEach(e=>{
+      h+=`<div class="cv-ref-item"><div class="cv-ref-name">${esc(e.n)}</div><div class="cv-ref-detail">${[e.ttl,e.co].filter(Boolean).map(esc).join(', ')}</div>${e.em||e.ph?`<div class="cv-ref-detail">${[e.em,e.ph].filter(Boolean).map(esc).join(' · ')}</div>`:''}</div>`;
+    });
+    h+=`</div>`;
+  }
+
+  return h;
+}
+
+// ════════════════════════════════
+// ATS SCORE
+// ════════════════════════════════
+function calcATS(){
+  const p=D.p||{};
+  let score=0; const tips=[];
+  if(p.fullName){score+=10;}else tips.push({c:'ar',t:'Add your full name'});
+  if(p.jobTitle){score+=8;}else tips.push({c:'aa',t:'Add a job title'});
+  if(p.email){score+=8;}else tips.push({c:'aa',t:'Add email address'});
+  if(p.phone){score+=5;}else tips.push({c:'aa',t:'Add phone number'});
+  if(p.summary&&p.summary.length>50){score+=12;}else tips.push({c:'aa',t:'Add a summary (50+ chars)'});
+  if((D.exp||[]).some(e=>e.ttl)){score+=15;}else tips.push({c:'ar',t:'Add work experience'});
+  if((D.edu||[]).some(e=>e.deg)){score+=10;}else tips.push({c:'ar',t:'Add education'});
+  if((D.skills||[]).length>=5){score+=15;tips.push({c:'ag',t:`${D.skills.length} skills listed`});}else tips.push({c:'aa',t:'Add at least 5 skills'});
+  if((D.proj||[]).some(e=>e.n)){score+=10;tips.push({c:'ag',t:'Projects section filled'});}
+  if(p.linkedin){score+=7;tips.push({c:'ag',t:'LinkedIn profile linked'});}else tips.push({c:'aa',t:'Add LinkedIn URL'});
+
+  const numEl=document.getElementById('atsNum');
+  numEl.textContent=score+'%';
+  numEl.style.color=score>=80?'var(--green)':score>=50?'#fbbf24':'var(--red)';
+  document.getElementById('atsBar').style.width=score+'%';
+  document.getElementById('atsTips').innerHTML=tips.slice(0,5).map(t=>`<div class="atip"><span class="adot ${t.c}"></span>${t.t}</div>`).join('');
+}
+
+// ════════════════════════════════
+// EXPORT / SHARE
+// ════════════════════════════════
+function exportPDF(){ showToast('Opening print dialog...'); setTimeout(()=>window.print(),300); }
+function shareLink(){
+  navigator.clipboard.writeText(window.location.href)
+    .then(()=>showToast('🔗 Link copied!'))
+    .catch(()=>showToast('Copy the URL from address bar'));
+}
+
+// ════════════════════════════════
+// HELPERS
+// ════════════════════════════════
+function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+let toastT;
+function showToast(m){
+  const el=document.getElementById('toast');
+  el.textContent=m; el.classList.add('on');
+  clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('on'),2600);
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown',e=>{
+  if(e.metaKey||e.ctrlKey){
+    if(e.key==='p'){e.preventDefault();exportPDF();}
+    if(e.key==='='||e.key==='+'){e.preventDefault();zoom(0.1);}
+    if(e.key==='-'){e.preventDefault();zoom(-0.1);}
+    if(e.key==='0'){e.preventDefault();zfit();}
+  }
+});
+
+window.addEventListener('load',init);
+</script>
+</body>
+</html>
